@@ -1,0 +1,21 @@
+﻿<Page
+    x:Class="UnIRC.NetworksView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:UnIRC"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    DataContext="{Binding Networks, Source={StaticResource Locator}}">
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <StackPanel>
+            <TextBlock Text="Network:"/>
+            <ComboBox ItemsSource="{Binding Networks}" SelectedItem="{Binding SelectedNetwork}"/>
+            <TextBlock Text="Server:"/>
+            <ComboBox ItemsSource="{Binding SelectedNetworkServers}" SelectedItem="{Binding SelectedServer}"/>
+            <Button Content="Add Network" Command="{Binding AddNetworkCommand}" />
+            <Button Content="Edit Network" Command="{Binding EditNetworkCommand}" />
+            <Button Content="Delete Network" Command="{Binding DeleteNetworkCommand}"/>
+        </StackPanel>
+    </Grid>
+</Page>

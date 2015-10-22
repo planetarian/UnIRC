@@ -7,6 +7,8 @@ using GalaSoft.MvvmLight.Messaging;
 using UnIRC.Shared.Helpers;
 using UnIRC.Shared.Messages;
 
+// ReSharper disable ExplicitCallerInfoArgument
+
 namespace UnIRC.ViewModels
 {
     public class ViewModelBaseExtended : ViewModelBase
@@ -55,7 +57,7 @@ namespace UnIRC.ViewModels
             [CallerLineNumber] int lineNumber = -1)
         {
             Util.RunOnUI(() =>
-            Send(new ErrorMessage(message, details, null, null, isError, display,
+            Send(new ErrorMessage(message, details, isError, display,
                 filePath, memberName, lineNumber)));
         }
 
@@ -67,7 +69,7 @@ namespace UnIRC.ViewModels
             [CallerLineNumber] int lineNumber = -1)
         {
             Util.RunOnUI(() =>
-                Send(new ErrorMessage(message, ex, null, null, isError, display,
+                Send(new ErrorMessage(message, ex, isError, display,
                     filePath, memberName, lineNumber)));
         }
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnIRC.Shared.Helpers;
 
 namespace UnIRC.Shared
 {
@@ -6,7 +7,9 @@ namespace UnIRC.Shared
     {
         public int StartPort { get; set; }
         public int EndPort { get; set; }
-        public List<int> Ports { get; set; }
+
+        public IEnumerable<int> Ports => StartPort.To(EndPort);
+
         public override string ToString()
         {
             return EndPort == StartPort

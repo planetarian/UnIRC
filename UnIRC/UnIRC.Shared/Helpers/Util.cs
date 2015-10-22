@@ -2,9 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Runtime.CompilerServices;
 using GalaSoft.MvvmLight.Threading;
+#if DESKTOP
+using System.Web;
+#else
+using System.Net;
+#endif
+
 
 namespace UnIRC.Shared.Helpers
 {

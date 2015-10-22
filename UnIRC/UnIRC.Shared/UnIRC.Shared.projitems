@@ -25,7 +25,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Network.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PortRange.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Server.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\NetworksViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\NetworkViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\ServerViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\ViewModelBaseExtended.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\ViewModelLocator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\ViewModelLocatorBase.cs" />
   </ItemGroup>
 </Project>
