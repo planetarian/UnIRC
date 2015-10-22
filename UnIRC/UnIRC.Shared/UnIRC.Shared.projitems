@@ -9,5 +9,23 @@
     <Import_RootNamespace>UnIRC.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\AutoRelayCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\CallerInfoException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\Extensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\FunctionWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\ListBoxAutoScroll.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\PropertyChangedSubscriber.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\RandomHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\SemaphoreSlimUnlocker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\Util.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\ValueNeededException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Messages\ErrorMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Messages\Message.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Messages\ReadyMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Network.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PortRange.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Server.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\ViewModelBaseExtended.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\ViewModelLocatorBase.cs" />
   </ItemGroup>
 </Project>
