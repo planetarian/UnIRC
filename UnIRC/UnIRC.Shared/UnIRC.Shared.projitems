@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>bf77100c-e8b0-4b31-adfa-9cc15842149e</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>UnIRC.Shared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Converters\IsNotNullVisibilityConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Converters\IsNullVisibilityConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\AutoRelayCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\CallerInfoException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\Extensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\FunctionWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\ListBoxAutoScroll.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\PropertyChangedSubscriber.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\RandomHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\SemaphoreSlimUnlocker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\Util.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\ValueNeededException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Messages\ErrorMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Messages\Message.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Messages\ReadyMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Network.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PortRange.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Server.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\NetworksViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\NetworkViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\ServerViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\ViewModelBaseExtended.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\ViewModelLocator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\ViewModelLocatorBase.cs" />
+  </ItemGroup>
+</Project>
