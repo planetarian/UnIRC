@@ -18,27 +18,11 @@ namespace UnIRC.Shared.ViewModels
             set { Set(nameof(Networks), ref _networks, value); }
         }
 
-        private Network _selectedNetwork;
-        public Network SelectedNetwork
+        private NetworkViewModel _selectedNetwork;
+        public NetworkViewModel SelectedNetwork
         {
             get { return _selectedNetwork; }
             set { Set(nameof(SelectedNetwork), ref _selectedNetwork, value); }
-        }
-
-        // Server:
-
-        private ObservableCollection<Server> _selectedNetworkServers;
-        public ObservableCollection<Server> SelectedNetworkServers
-        {
-            get { return _selectedNetworkServers; }
-            set { Set(nameof(SelectedNetworkServers), ref _selectedNetworkServers, value); }
-        }
-
-        private Server _selectedServer;
-        public Server SelectedServer
-        {
-            get { return _selectedServer; }
-            set { Set(nameof(SelectedServer), ref _selectedServer, value); }
         }
 
         // Network CRUD:
@@ -53,12 +37,9 @@ namespace UnIRC.Shared.ViewModels
             AddNetworkCommand = GetCommand(AddNewNetwork);
             EditNetworkCommand = GetCommand(EditSelectedNetwork, () => SelectedNetwork != null, () => SelectedNetwork);
             DeleteNetworkCommand = GetCommand(DeleteSelectedNetwork, () => SelectedNetwork != null, () => SelectedNetwork);
-
-
-            this.OnChanged(x => x.SelectedNetwork)
-                .Do(() => SelectedNetworkServers = SelectedNetwork.Servers.ToObservable());
-
         }
+
+        // Network CRUD:
 
         private void AddNewNetwork()
         {

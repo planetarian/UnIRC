@@ -45,5 +45,30 @@ namespace UnIRC.Shared.ViewModels
         public ICommand EditServerCommand { get; set; }
         public ICommand DeleteServerCommand { get; set; }
 
+
+        public NetworkViewModel()
+        {
+            AddServerCommand = GetCommand(AddNewServer);
+            EditServerCommand = GetCommand(EditSelectedServer, () => SelectedServer != null, () => SelectedServer);
+            DeleteServerCommand = GetCommand(DeleteSelectedServer, () => SelectedServer != null, () => SelectedServer);
+        }
+
+        // Network CRUD:
+
+        private void AddNewServer()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void EditSelectedServer()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void DeleteSelectedServer()
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }

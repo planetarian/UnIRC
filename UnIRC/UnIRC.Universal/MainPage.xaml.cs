@@ -1,17 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Xaml;
+﻿using Windows.Foundation;
+using Windows.UI.ViewManagement;
+using UnIRC.Models;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -24,7 +14,23 @@ namespace UnIRC
     {
         public MainPage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
+            ApplicationView.GetForCurrentView().SetPreferredMinSize(new Size(340, 530));
+        }
+
+        private void Menu_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var list = (ListBox)sender;
+            if (list.SelectedIndex == -1)
+                return;
+            ContentFrame.Navigate((list.SelectedItem as MenuItem)?.View);
+            if (NavigationSplitView.DisplayMode == SplitViewDisplayMode.CompactOverlay || NavigationSplitView.DisplayMode == SplitViewDisplayMode.Overlay)
+                NavigationSplitView.IsPaneOpen = false;
+        }
+
+        private void MenuButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            NavigationSplitView.IsPaneOpen = !NavigationSplitView.IsPaneOpen;
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace UnIRC.Shared.ViewModels
 {
-    class ServerViewModel
+    public class ServerViewModel
     {
     }
 }

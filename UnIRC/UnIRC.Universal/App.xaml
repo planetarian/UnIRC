@@ -3,11 +3,13 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:UnIRC"
-    xmlns:viewModels="using:UnIRC.Shared.ViewModels"
-    RequestedTheme="Light">
+    xmlns:converters="using:UnIRC.Converters"
+    xmlns:viewModels="using:UnIRC.Shared.ViewModels">
     <Application.Resources>
         <ResourceDictionary>
             <viewModels:ViewModelLocator x:Key="Locator"/>
+            <converters:IsNullVisibilityConverter x:Key="IsNullVisibilityConverter"/>
+            <converters:IsNotNullVisibilityConverter x:Key="IsNotNullVisibilityConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

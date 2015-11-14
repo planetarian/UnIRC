@@ -9,6 +9,8 @@
     <Import_RootNamespace>UnIRC.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Converters\IsNotNullVisibilityConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Converters\IsNullVisibilityConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\AutoRelayCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\CallerInfoException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\Extensions.cs" />
