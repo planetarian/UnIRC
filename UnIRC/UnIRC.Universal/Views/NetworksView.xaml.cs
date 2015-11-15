@@ -26,5 +26,10 @@ namespace UnIRC.Views
         {
             this.InitializeComponent();
         }
+
+        private void NewServerClick(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

@@ -10,6 +10,8 @@
             <viewModels:ViewModelLocator x:Key="Locator"/>
             <converters:IsNullVisibilityConverter x:Key="IsNullVisibilityConverter"/>
             <converters:IsNotNullVisibilityConverter x:Key="IsNotNullVisibilityConverter"/>
+            <converters:IsTrueVisibilityConverter x:Key="IsTrueVisibilityConverter"/>
+            <converters:IsFalseVisibilityConverter x:Key="IsFalseVisibilityConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

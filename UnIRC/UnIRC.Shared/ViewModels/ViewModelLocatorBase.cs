@@ -1,5 +1,6 @@
 ﻿using GalaSoft.MvvmLight.Ioc;
 using Microsoft.Practices.ServiceLocation;
+using System;
 
 namespace UnIRC.ViewModels
 {
@@ -14,6 +15,12 @@ namespace UnIRC.ViewModels
         {
             SimpleIoc.Default.Register<T>();
         }
+
+        protected void Register<T>(Func<T> factory) where T : class
+        {
+            SimpleIoc.Default.Register(factory);
+        }
+
 
         protected T GetInstance<T>() where T : class
         {

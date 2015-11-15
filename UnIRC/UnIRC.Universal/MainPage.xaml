@@ -43,7 +43,10 @@
                     <StackPanel.DataContext>
                         <models:Menu />
                     </StackPanel.DataContext>
-                    <StackPanel Orientation="Horizontal" Background="#A0A0A0">
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Background="{ThemeResource
+                        SystemControlPageBackgroundChromeLowBrush}">
                         <Button
                             x:Name="NavButton"
                             Content="&#xE700;"
@@ -53,14 +56,14 @@
                             Click="MenuButton_Click"
                             Background="Transparent"
                             HorizontalAlignment="Left" />
-                        <TextBlock Text="Menu" Margin="16,8,0,0" />
                     </StackPanel>
                     <ListBox
                         x:Name="Menu"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
                         SelectionChanged="Menu_SelectionChanged"
-                        ItemsSource="{Binding MenuItems}">
+                        ItemsSource="{Binding MenuItems}"
+                        Background="Transparent">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
@@ -79,7 +82,9 @@
             </SplitView.Pane>
             <SplitView.Content>
                 <StackPanel Orientation="Vertical">
-                    <StackPanel Orientation="Horizontal" Background="#FFF2F2F2" Height="36">
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Height="36">
                         <Button
                             x:Name="ContentMenuButton"
                             Content="&#xE700;"
