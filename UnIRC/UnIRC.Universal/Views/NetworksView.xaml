@@ -14,17 +14,17 @@
             <Setter Property="Margin" Value="5"/>
         </Style>
     </Page.Resources>
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Padding="10">
+    <ScrollViewer Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Padding="10" VerticalScrollMode="Enabled">
         <StackPanel>
             <TextBlock Text="Network:"/>
-            <StackPanel MinHeight="70" Margin="0,10">
+            <StackPanel MinHeight="50">
                 <StackPanel
                     Padding="0,10"
                     VerticalAlignment="Top"
                     Orientation="Horizontal"
                     Visibility="{Binding IsEditingNetwork,
                     Converter={StaticResource IsFalseVisibilityConverter}}">
-                    <ComboBox ItemsSource="{Binding Networks}" SelectedItem="{Binding SelectedNetwork}" DisplayMemberPath="Name" Width="200"/>
+                    <ComboBox ItemsSource="{Binding Networks}" SelectedItem="{Binding SelectedNetwork, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DisplayMemberPath="Name" Width="200"/>
                     <Button Style="{StaticResource IconButton}" Content="&#xE710;" Command="{Binding CreateNewNetworkCommand}" />
                     <Button Style="{StaticResource IconButton}" Content="&#xE70F;" Command="{Binding EditNetworkCommand}" />
                     <Button Style="{StaticResource IconButton}" Content="&#xE74D;" Command="{Binding DeleteNetworkCommand}"/>
@@ -113,5 +113,5 @@
                 </StackPanel>
             </Grid>
         </StackPanel>
-    </Grid>
+    </ScrollViewer>
 </Page>

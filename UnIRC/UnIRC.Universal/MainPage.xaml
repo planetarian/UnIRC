@@ -95,7 +95,7 @@
                             Background="Transparent"
                             HorizontalAlignment="Left"
                             Visibility="Collapsed" />
-                        <TextBlock Text="SplitView UWP" Margin="16,8,0,0" />
+                        <TextBlock Text="UnIRC" Margin="16,8,0,0" />
                     </StackPanel>
                     <Frame x:Name="ContentFrame"></Frame>
                 </StackPanel>

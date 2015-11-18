@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
@@ -126,6 +127,7 @@ namespace UnIRC.Shared.ViewModels
             Name = network.Name;
 
             this.OnChanged(x => x.Name).Do(() => Network.Name = Name);
+            this.OnChanged(x => x.Servers).Do(() => Network.Servers = Servers?.Select(s => s.Server).ToList());
             
             CreateNewServerCommand = GetCommand(CreateNewServer);
             EditServerCommand = GetCommand(EditServer, () => SelectedServer != null, () => SelectedServer);
@@ -168,6 +170,7 @@ namespace UnIRC.Shared.ViewModels
                 {
                     editedServer = new ServerViewModel();
                     Servers.Add(editedServer);
+                    RaisePropertyChanged(nameof(Servers));
                 }
                 ApplyNewServerProperties(editedServer);
                 SelectedServer = editedServer;

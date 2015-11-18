@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows.Input;
 using UnIRC.Shared.Helpers;
 using UnIRC.ViewModels;
@@ -66,6 +67,12 @@ namespace UnIRC.Shared.ViewModels
         public NetworksViewModel(INavigationService navigationService)
         {
             _navigationService = navigationService;
+
+            this.OnChanged(x => x.SelectedNetwork).Do(() =>
+            {
+                if (SelectedNetwork != null)
+                    SelectedNetwork.SelectedServer = SelectedNetwork.Servers?.FirstOrDefault();
+            });
             
             CreateNewNetworkCommand = GetCommand(CreateNewNetwork);
             EditNetworkCommand = GetCommand(EditNetwork, () => SelectedNetwork != null, () => SelectedNetwork);
@@ -99,6 +106,7 @@ namespace UnIRC.Shared.ViewModels
                 {
                     editedNetwork = new NetworkViewModel();
                     Networks.Add(editedNetwork);
+                    RaisePropertyChanged(nameof(Networks));
                 }
                 ApplyNewNetworkProperties(editedNetwork);
                 SelectedNetwork = editedNetwork;
