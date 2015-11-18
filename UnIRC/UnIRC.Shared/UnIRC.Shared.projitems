@@ -26,9 +26,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Messages\ErrorMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Messages\Message.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Messages\ReadyMessage.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Network.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)PortRange.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Server.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Network.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\PortRange.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Server.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\NetworksViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\NetworkViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\ServerViewModel.cs" />

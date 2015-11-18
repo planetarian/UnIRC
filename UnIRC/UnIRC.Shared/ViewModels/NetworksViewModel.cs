@@ -29,6 +29,8 @@ namespace UnIRC.Shared.ViewModels
             set { Set(nameof(SelectedNetwork), ref _selectedNetwork, value); }
         }
 
+        // Network editing properties:
+
         private string _newNetworkName;
         public string NewNetworkName
         {
@@ -36,29 +38,39 @@ namespace UnIRC.Shared.ViewModels
             set { Set(nameof(NewNetworkName), ref _newNetworkName, value); }
         }
 
-        private bool _addingNewNetwork;
-        public bool AddingNewNetwork
+        // State:
+
+        private bool _isAddingNewNetwork;
+        public bool IsAddingNewNetwork
         {
-            get { return _addingNewNetwork; }
-            set { Set(nameof(AddingNewNetwork), ref _addingNewNetwork, value); }
+            get { return _isAddingNewNetwork; }
+            set { Set(nameof(IsAddingNewNetwork), ref _isAddingNewNetwork, value); }
         }
-        
+
+        private bool _isEditingNetwork;
+        public bool IsEditingNetwork
+        {
+            get { return _isEditingNetwork; }
+            set { Set(nameof(IsEditingNetwork), ref _isEditingNetwork, value); }
+        }
 
         // Network CRUD:
         
         public ICommand CreateNewNetworkCommand { get; set; }
-        public ICommand SaveNewNetworkCommand { get; set; }
         public ICommand EditNetworkCommand { get; set; }
+        public ICommand SaveNetworkCommand { get; set; }
+        public ICommand CancelNetworkOperationCommand { get; set; }
         public ICommand DeleteNetworkCommand { get; set; }
 
 
         public NetworksViewModel(INavigationService navigationService)
         {
             _navigationService = navigationService;
-
+            
             CreateNewNetworkCommand = GetCommand(CreateNewNetwork);
-            SaveNewNetworkCommand = GetCommand(SaveNewNetwork, () => !NewNetworkName.IsNullOrEmpty(), () => NewNetworkName);
-            EditNetworkCommand = GetCommand(EditSelectedNetwork, () => SelectedNetwork != null, () => SelectedNetwork);
+            EditNetworkCommand = GetCommand(EditNetwork, () => SelectedNetwork != null, () => SelectedNetwork);
+            SaveNetworkCommand = GetCommand(SaveNetwork, () => !NewNetworkName.IsNullOrEmpty(), () => NewNetworkName);
+            CancelNetworkOperationCommand = GetCommand(CancelNetworkOperation);
             DeleteNetworkCommand = GetCommand(DeleteSelectedNetwork, () => SelectedNetwork != null, () => SelectedNetwork);
         }
 
@@ -66,30 +78,60 @@ namespace UnIRC.Shared.ViewModels
         
         private void CreateNewNetwork()
         {
+            ClearNetworkForm();
+            IsAddingNewNetwork = true;
+            IsEditingNetwork = true;
+        }
+
+        private void EditNetwork()
+        {
+            GetNetworkProperties(SelectedNetwork);
+            IsEditingNetwork = true;
+        }
+
+        private void SaveNetwork()
+        {
+            if (IsEditingNetwork)
+            {
+                NetworkViewModel editedNetwork = SelectedNetwork;
+                SelectedNetwork = null;
+                if (IsAddingNewNetwork)
+                {
+                    editedNetwork = new NetworkViewModel();
+                    Networks.Add(editedNetwork);
+                }
+                ApplyNewNetworkProperties(editedNetwork);
+                SelectedNetwork = editedNetwork;
+            }
+            CancelNetworkOperation();
+        }
+        
+        private void CancelNetworkOperation()
+        {
+            IsAddingNewNetwork = false;
+            IsEditingNetwork = false;
+            ClearNetworkForm();
+        }
+
+        private void GetNetworkProperties(NetworkViewModel sourceNetwork)
+        {
+            NewNetworkName = sourceNetwork?.Name;
+        }
+
+        private void ApplyNewNetworkProperties(NetworkViewModel targetNetwork)
+        {
+            targetNetwork.Name = NewNetworkName;
+        }
+
+        private void ClearNetworkForm()
+        {
             NewNetworkName = "";
-            AddingNewNetwork = true;
-        }
-
-        private void SaveNewNetwork()
-        {
-            AddingNewNetwork = false;
-            var network = new Network() { Name = NewNetworkName };
-            var networkViewModel = new NetworkViewModel { Network = network };
-            Networks.Add(networkViewModel);
-            SelectedNetwork = networkViewModel;
-            NewNetworkName = null;
-        }
-
-        private void EditSelectedNetwork()
-        {
-            throw new NotImplementedException();
         }
 
         private void DeleteSelectedNetwork()
         {
-            NetworkViewModel selected = SelectedNetwork;
+            Networks.Remove(SelectedNetwork);
             SelectedNetwork = null;
-            Networks.Remove(selected);
         }
     }
 }

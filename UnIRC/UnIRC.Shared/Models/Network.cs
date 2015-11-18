@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace UnIRC.Shared
+namespace UnIRC.Shared.Models
 {
     public class Network
     {

@@ -17,41 +17,101 @@
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Padding="10">
         <StackPanel>
             <TextBlock Text="Network:"/>
-            <StackPanel
-                Padding="0,10"
-                Orientation="Horizontal"
-                Visibility="{Binding AddingNewNetwork,
-                Converter={StaticResource IsFalseVisibilityConverter}}">
-                <ComboBox ItemsSource="{Binding Networks}" SelectedItem="{Binding SelectedNetwork}" DisplayMemberPath="Network.Name" Width="200"/>
-                <Button Style="{StaticResource IconButton}" Content="&#xE710;" Command="{Binding CreateNewNetworkCommand}" />
-                <Button Style="{StaticResource IconButton}" Content="&#xE70F;" Command="{Binding EditNetworkCommand}" />
-                <Button Style="{StaticResource IconButton}" Content="&#xE711;" Command="{Binding DeleteNetworkCommand}"/>
+            <StackPanel MinHeight="70" Margin="0,10">
+                <StackPanel
+                    Padding="0,10"
+                    VerticalAlignment="Top"
+                    Orientation="Horizontal"
+                    Visibility="{Binding IsEditingNetwork,
+                    Converter={StaticResource IsFalseVisibilityConverter}}">
+                    <ComboBox ItemsSource="{Binding Networks}" SelectedItem="{Binding SelectedNetwork}" DisplayMemberPath="Name" Width="200"/>
+                    <Button Style="{StaticResource IconButton}" Content="&#xE710;" Command="{Binding CreateNewNetworkCommand}" />
+                    <Button Style="{StaticResource IconButton}" Content="&#xE70F;" Command="{Binding EditNetworkCommand}" />
+                    <Button Style="{StaticResource IconButton}" Content="&#xE74D;" Command="{Binding DeleteNetworkCommand}"/>
+                </StackPanel>
+                <Grid
+                    VerticalAlignment="Top"
+                    Background="{ThemeResource SystemControlBackgroundBaseLowBrush}"
+                    Visibility="{Binding IsEditingNetwork,
+                    Converter={StaticResource IsTrueVisibilityConverter}}"
+                    HorizontalAlignment="Left">
+                    <StackPanel Orientation="Horizontal" Padding="10">
+                        <TextBlock Text="Name:" VerticalAlignment="Center" Padding="0,0,10,0"/>
+                        <TextBox Text="{Binding NewNetworkName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="180"/>
+                        <Button Style="{StaticResource IconButton}" Content="&#xE10B;" Command="{Binding SaveNetworkCommand}" />
+                        <Button Style="{StaticResource IconButton}" Content="&#xE711;" Command="{Binding CancelNetworkOperationCommand}" />
+                    </StackPanel>
+                </Grid>
             </StackPanel>
             <Grid
-                Margin="0,10"
-                Background="{ThemeResource SystemControlBackgroundBaseLowBrush}"
-                Visibility="{Binding AddingNewNetwork,
-                Converter={StaticResource IsTrueVisibilityConverter}}"
-                HorizontalAlignment="Left">
-                <StackPanel Orientation="Horizontal" Padding="10">
-                    <TextBlock Text="New network name:" VerticalAlignment="Center" Padding="0,0,10,0"/>
-                    <TextBox Text="{Binding NewNetworkName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="150"/>
-                    <Button Style="{StaticResource IconButton}" Content="&#xE710;" Command="{Binding SaveNewNetworkCommand}" />
-                </StackPanel>
-            </Grid>
-            <StackPanel
                 Visibility="{Binding SelectedNetwork,
                 Converter={StaticResource IsNotNullVisibilityConverter}}">
-                <TextBlock Text="Server:"/>
-                <StackPanel
-                    Orientation="Horizontal"
-                    DataContext="{Binding SelectedNetwork}">
-                    <ComboBox ItemsSource="{Binding Servers}" SelectedItem="{Binding SelectedServer}" Width="200"/>
-                    <Button Style="{StaticResource IconButton}" Content="&#xE710;" Command="{Binding NewServerCommand}" />
-                    <Button Style="{StaticResource IconButton}" Content="&#xE70F;" Command="{Binding EditServerCommand}" />
-                    <Button Style="{StaticResource IconButton}" Content="&#xE711;" Command="{Binding DeleteServerCommand}"/>
+                <StackPanel DataContext="{Binding SelectedNetwork}">
+                    <TextBlock Text="Server:"/>
+                    <StackPanel
+                        Padding="0,10"
+                        Orientation="Horizontal"
+                        Visibility="{Binding IsEditingServer,
+                        Converter={StaticResource IsFalseVisibilityConverter}}">
+                        <ComboBox
+                            ItemsSource="{Binding Servers}"
+                            SelectedItem="{Binding SelectedServer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            DisplayMemberPath="DisplayName"
+                            Width="200"/>
+                        <Button Style="{StaticResource IconButton}" Content="&#xE710;" Command="{Binding CreateNewServerCommand}" />
+                        <Button Style="{StaticResource IconButton}" Content="&#xE70F;" Command="{Binding EditServerCommand}" />
+                        <Button Style="{StaticResource IconButton}" Content="&#xE74D;" Command="{Binding DeleteServerCommand}"/>
+                    </StackPanel>
+                    <Grid
+                        VerticalAlignment="Top"
+                        Background="{ThemeResource SystemControlBackgroundBaseLowBrush}"
+                        Visibility="{Binding IsEditingServer,
+                        Converter={StaticResource IsTrueVisibilityConverter}}"
+                        HorizontalAlignment="Left">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Padding="10">
+                                <TextBlock Text="Name (opt):" VerticalAlignment="Center" Padding="0,0,10,0"/>
+                                <TextBox Text="{Binding NewServerName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="180"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Padding="10">
+                                <TextBlock Text="Address:" VerticalAlignment="Center" Padding="0,0,10,0"/>
+                                <TextBox
+                                    Text="{Binding NewServerAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Width="180"
+                                    IsSpellCheckEnabled="False"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Padding="10">
+                                <TextBlock Text="Password (opt):" VerticalAlignment="Center" Padding="0,0,10,0"/>
+                                <PasswordBox Password="{Binding NewServerPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="180"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Padding="10">
+                                <TextBlock Text="Port range:" VerticalAlignment="Center" Padding="0,0,10,0"/>
+                                <TextBox Text="{Binding NewServerPortRange, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="180"/>
+                                <Button Style="{StaticResource IconButton}" Content="&#xE710;" Command="{Binding AddPortRangeCommand}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Padding="10">
+                                <TextBlock Text="Ports:" VerticalAlignment="Top" Padding="0,10,10,0"/>
+                                <ListBox
+                                    ItemsSource="{Binding NewServerPorts}"
+                                    SelectedItem="{Binding SelectedPortRange, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Width="180"
+                                    MinHeight="90"/>
+                                <Grid>
+                                    <Button
+                                        Style="{StaticResource IconButton}"
+                                        Content="&#xE74D;"
+                                        Command="{Binding DeleteSelectedPortRangeCommand}"
+                                        VerticalAlignment="Top" />
+                                    <StackPanel VerticalAlignment="Bottom" Orientation="Horizontal">
+                                        <Button Style="{StaticResource IconButton}" Content="&#xE10B;" Command="{Binding SaveServerCommand}" />
+                                        <Button Style="{StaticResource IconButton}" Content="&#xE711;" Command="{Binding CancelServerOperationCommand}" />
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
                 </StackPanel>
-            </StackPanel>
+            </Grid>
         </StackPanel>
     </Grid>
 </Page>
