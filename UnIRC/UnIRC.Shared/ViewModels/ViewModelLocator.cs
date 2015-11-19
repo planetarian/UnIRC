@@ -8,7 +8,9 @@ namespace UnIRC.Shared.ViewModels
     {
         public ViewModelLocator()
         {
+#if WINDOWS_UWP
             Register<INavigationService>(() => new NavigationService());
+#endif
             Register<NetworksViewModel>();
         }
 

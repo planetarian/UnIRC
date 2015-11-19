@@ -1,110 +1,153 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
+using UnIRC.Models;
 using UnIRC.Shared.Helpers;
-using UnIRC.Shared.Models;
+using UnIRC.Shared.Messages;
 using UnIRC.ViewModels;
 
 namespace UnIRC.Shared.ViewModels
 {
     public class NetworkViewModel : ViewModelBaseExtended
     {
-        private Network _network;
         public Network Network
         {
             get { return _network; }
-            set { Set(nameof(Network), ref _network, value); }
+            set { Set(ref _network, value); }
         }
+        private Network _network;
 
-        private string _name;
         public string Name
         {
             get { return _name; }
-            set { Set(nameof(Name), ref _name, value); }
+            set { Set(ref _name, value); }
         }
+        private string _name;
 
         // Servers:
 
-        private ObservableCollection<ServerViewModel> _servers
-            = new ObservableCollection<ServerViewModel>();
         public ObservableCollection<ServerViewModel> Servers
         {
             get { return _servers; }
-            set { Set(nameof(Servers), ref _servers, value); }
+            set { Set(ref _servers, value); }
         }
+        private ObservableCollection<ServerViewModel> _servers
+            = new ObservableCollection<ServerViewModel>();
 
-        private ServerViewModel _selectedServer;
         public ServerViewModel SelectedServer
         {
             get { return _selectedServer; }
-            set { Set(nameof(SelectedServer), ref _selectedServer, value); }
+            set { Set(ref _selectedServer, value); }
         }
+        private ServerViewModel _selectedServer;
 
         // Server editing properties:
 
-        private string _newServerName;
         public string NewServerName
         {
             get { return _newServerName; }
-            set { Set(nameof(NewServerName), ref _newServerName, value); }
+            set { Set(ref _newServerName, value); }
         }
+        private string _newServerName;
 
-        private string _newServerAddress;
         public string NewServerAddress
         {
             get { return _newServerAddress; }
-            set { Set(nameof(NewServerAddress), ref _newServerAddress, value); }
+            set { Set(ref _newServerAddress, value); }
         }
+        private string _newServerAddress;
 
-        private string _newServerPassword;
         public string NewServerPassword
         {
             get { return _newServerPassword; }
-            set { Set(nameof(NewServerPassword), ref _newServerPassword, value); }
+            set { Set(ref _newServerPassword, value); }
         }
+        private string _newServerPassword;
 
-        private ObservableCollection<PortRange> _newServerPorts
-            = new ObservableCollection<PortRange>();
         public ObservableCollection<PortRange> NewServerPorts
         {
             get { return _newServerPorts; }
-            set { Set(nameof(NewServerPorts), ref _newServerPorts, value); }
+            set { Set(ref _newServerPorts, value); }
         }
+        private ObservableCollection<PortRange> _newServerPorts
+            = new ObservableCollection<PortRange>();
 
-        private string _newServerPortRange;
         public string NewServerPortRange
         {
             get { return _newServerPortRange; }
-            set { Set(nameof(NewServerPortRange), ref _newServerPortRange, value); }
+            set { Set(ref _newServerPortRange, value); }
         }
+        private string _newServerPortRange;
 
-        private PortRange _selectedPortRange;
         public PortRange SelectedPortRange
         {
             get { return _selectedPortRange; }
-            set { Set(nameof(SelectedPortRange), ref _selectedPortRange, value); }
+            set { Set(ref _selectedPortRange, value); }
         }
+        private PortRange _selectedPortRange;
+
+        public bool NewServerUseSsl
+        {
+            get { return _newServerUseSsl; }
+            set { Set(ref _newServerUseSsl, value); }
+        }
+        private bool _newServerUseSsl;
+
+        public bool NewServerUseServerNick
+        {
+            get { return _newServerUseServerNick;}
+            set { Set(ref _newServerUseServerNick, value); }
+        }
+        private bool _newServerUseServerNick;
+
+        public string NewServerNick
+        {
+            get { return _newServerNick; }
+            set { Set(ref _newServerNick, value); }
+        }
+        private string _newServerNick;
+
+        public string NewServerBackupNick
+        {
+            get { return _newServerBackupNick; }
+            set { Set(ref _newServerBackupNick, value); }
+        }
+        private string _newServerBackupNick;
+
+        public bool CanEditNewServerNick
+        {
+            get { return _canEditNewServerNick; }
+            set { Set(ref _canEditNewServerNick, value); }
+        }
+        private bool _canEditNewServerNick;
+
 
         // State
 
-        private bool _isAddingNewServer;
         public bool IsAddingNewServer
         {
             get { return _isAddingNewServer; }
-            set { Set(nameof(IsAddingNewServer), ref _isAddingNewServer, value); }
+            set { Set(ref _isAddingNewServer, value); }
         }
+        private bool _isAddingNewServer;
 
-        private bool _isEditingServer;
         public bool IsEditingServer
         {
             get { return _isEditingServer; }
-            set { Set(nameof(IsEditingServer), ref _isEditingServer, value); }
+            set { Set(ref _isEditingServer, value); }
         }
-        
+        private bool _isEditingServer;
+
+        public bool IsDeletingServer
+        {
+            get { return _isDeletingServer; }
+            set { Set(ref _isDeletingServer, value); }
+        }
+        private bool _isDeletingServer;
+
+
         // Server CRUD:
 
         public ICommand CreateNewServerCommand { get; set; }
@@ -125,25 +168,39 @@ namespace UnIRC.Shared.ViewModels
         {
             Network = network;
             Name = network.Name;
+            Servers = network.Servers?.Select(s => new ServerViewModel(s)).ToObservable()
+                      ?? new ObservableCollection<ServerViewModel>();
 
-            this.OnChanged(x => x.Name).Do(() => Network.Name = Name);
-            this.OnChanged(x => x.Servers).Do(() => Network.Servers = Servers?.Select(s => s.Server).ToList());
-            
             CreateNewServerCommand = GetCommand(CreateNewServer);
             EditServerCommand = GetCommand(EditServer, () => SelectedServer != null, () => SelectedServer);
-            SaveServerCommand = GetCommand(SaveServer, ()=> !NewServerAddress.IsNullOrEmpty() && NewServerPorts != null && NewServerPorts.Count > 0, () => NewServerAddress, () => NewServerPorts);
+            SaveServerCommand = GetCommand(SaveServer, () => IsDeletingServer || ValidateNewServerData(),
+                () => NewServerName, () => NewServerAddress, () => NewServerPorts, () => NewServerUseSsl,
+                () => IsDeletingServer);
             CancelServerOperationCommand = GetCommand(CancelServerOperation);
             DeleteServerCommand = GetCommand(DeleteSelectedServer, () => SelectedServer != null, () => SelectedServer);
             AddPortRangeCommand = GetCommand(AddNewServerPortRange,
                 ValidateNewServerPortRange, () => NewServerPortRange);
             DeleteSelectedPortRangeCommand = GetCommand(DeleteSelectedPortRange, () => SelectedPortRange != null,
                 () => SelectedPortRange);
+            
+            this.OnChanged(x => x.Name).Do(() => Network.Name = Name);
+            this.OnChanged(x => x.Servers).Do(() => Network.Servers = Servers?.Select(s => s.Server).ToList());
+            this.OnChanged(x => x.SelectedServer, x => x.SelectedPortRange).Do(() => Send(new NetworksModifiedMessage()));
+            this.OnChanged(x => x.IsDeletingServer, x => x.NewServerUseServerNick)
+                .Do(() => CanEditNewServerNick = !IsDeletingServer && NewServerUseServerNick);
         }
 
-        private bool ValidateSaveServer()
+        private bool ValidateNewServerData()
         {
-            return !NewServerAddress.IsNullOrEmpty() && NewServerPorts != null && NewServerPorts.Count > 0;
+            string serverDisplayName = Server.GetServerDisplayName(NewServerAddress, NewServerPorts, NewServerUseSsl);
+            string newName = NewServerName.IsNullOrWhitespace() ? serverDisplayName : NewServerName;
+            return !NewServerAddress.IsNullOrEmpty()
+                   && NewServerPorts != null
+                   && NewServerPorts.Count > 0
+                   && Servers != null
+                   && !Servers.Select(s => s.DisplayName).Contains(newName);
         }
+
 
         // Network CRUD:
 
@@ -162,7 +219,15 @@ namespace UnIRC.Shared.ViewModels
 
         private void SaveServer()
         {
-            if (IsEditingServer)
+            if (IsDeletingServer)
+            {
+                Servers.Remove(SelectedServer);
+                SelectedServer = null;
+                // ReSharper disable once ExplicitCallerInfoArgument
+                RaisePropertyChanged(nameof(Servers));
+                IsDeletingServer = false;
+            }
+            else if (IsEditingServer)
             {
                 ServerViewModel editedServer = SelectedServer;
                 SelectedServer = null;
@@ -170,19 +235,28 @@ namespace UnIRC.Shared.ViewModels
                 {
                     editedServer = new ServerViewModel();
                     Servers.Add(editedServer);
+                    // ReSharper disable once ExplicitCallerInfoArgument
                     RaisePropertyChanged(nameof(Servers));
                 }
                 ApplyNewServerProperties(editedServer);
                 SelectedServer = editedServer;
             }
             CancelServerOperation();
+            Send(new NetworksModifiedMessage());
         }
 
         private void CancelServerOperation()
         {
-            IsAddingNewServer = false;
-            IsEditingServer = false;
-            ClearServerForm();
+            if (IsDeletingServer)
+            {
+                IsDeletingServer = false;
+            }
+            else
+            {
+                IsAddingNewServer = false;
+                IsEditingServer = false;
+                ClearServerForm();
+            }
         }
 
         private void GetServerProperties(ServerViewModel sourceServer)
@@ -190,7 +264,11 @@ namespace UnIRC.Shared.ViewModels
             NewServerName = sourceServer?.Name;
             NewServerAddress = sourceServer?.Address;
             NewServerPassword = sourceServer?.Password;
-            NewServerPorts = sourceServer?.Ports;
+            NewServerPorts = sourceServer?.Ports.ToObservable();
+            NewServerUseSsl = sourceServer?.UseSsl ?? false;
+            NewServerUseServerNick = sourceServer?.UseServerNick ?? false;
+            NewServerNick = sourceServer?.Nick;
+            NewServerBackupNick = sourceServer?.BackupNick;
         }
 
         private void ApplyNewServerProperties(ServerViewModel targetServer)
@@ -199,6 +277,10 @@ namespace UnIRC.Shared.ViewModels
             targetServer.Address = NewServerAddress;
             targetServer.Password = NewServerPassword;
             targetServer.Ports = NewServerPorts;
+            targetServer.UseSsl = NewServerUseSsl;
+            targetServer.UseServerNick = NewServerUseServerNick;
+            targetServer.Nick = NewServerNick;
+            targetServer.BackupNick = NewServerBackupNick;
         }
 
         private void ClearServerForm()
@@ -208,18 +290,22 @@ namespace UnIRC.Shared.ViewModels
             NewServerPassword = "";
             NewServerPortRange = "";
             NewServerPorts = new ObservableCollection<PortRange>();
+            NewServerUseSsl = false;
+            NewServerUseServerNick = false;
+            NewServerNick = "";
+            NewServerBackupNick = "";
         }
 
         private void DeleteSelectedServer()
         {
-            Servers.Remove(SelectedServer);
-            SelectedServer = null;
+            IsDeletingServer = true;
         }
 
         private bool ValidateNewServerPortRange()
         {
             const string validPortRangeRegex = @"^((\d{1,5})|(\d{1,5}-\d{1,5}))(,((\d{1,5})|(\d{1,5}-\d{1,5})))*$";
-            return Regex.IsMatch(NewServerPortRange, validPortRangeRegex, RegexOptions.Compiled);
+            return NewServerPortRange != null
+                   && Regex.IsMatch(NewServerPortRange, validPortRangeRegex, RegexOptions.Compiled);
         }
 
         private void AddNewServerPortRange()
@@ -248,6 +334,7 @@ namespace UnIRC.Shared.ViewModels
                 NewServerPorts.Add(new PortRange(start, end));
             }
             NewServerPortRange = "";
+            // ReSharper disable once ExplicitCallerInfoArgument
             RaisePropertyChanged(nameof(NewServerPorts));
         }
 

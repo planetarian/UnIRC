@@ -37,7 +37,7 @@
                 </VisualState>
             </VisualStateGroup>
         </VisualStateManager.VisualStateGroups>
-        <SplitView x:Name="NavigationSplitView" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" DisplayMode="Overlay">
+        <SplitView x:Name="NavigationSplitView" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" DisplayMode="Overlay" CompactPaneLength="40">
             <SplitView.Pane>
                 <StackPanel Orientation="Vertical">
                     <StackPanel.DataContext>
@@ -51,8 +51,9 @@
                             x:Name="NavButton"
                             Content="&#xE700;"
                             FontFamily="Segoe MDL2 Assets"
-                            Width="48"
-                            Height="36"
+                            FontSize="20"
+                            Width="40"
+                            Height="40"
                             Click="MenuButton_Click"
                             Background="Transparent"
                             HorizontalAlignment="Left" />
@@ -64,6 +65,11 @@
                         SelectionChanged="Menu_SelectionChanged"
                         ItemsSource="{Binding MenuItems}"
                         Background="Transparent">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Padding" Value="10,5"/>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
@@ -71,9 +77,14 @@
                                         x:Name="Glyph"
                                         Text="{Binding Icon}"
                                         FontFamily="Segoe MDL2 Assets"
-                                        Width="48"
-                                        Margin="5,0,0,0" />
-                                    <TextBlock Text="{Binding Title}" />
+                                        FontSize="18"
+                                        Width="40"
+                                        VerticalAlignment="Center"/>
+                                    <TextBlock
+                                        Text="{Binding Title}"
+                                        FontSize="20"
+                                        VerticalAlignment="Center"
+                                        Padding="0,0,0,1"/>
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -81,24 +92,29 @@
                 </StackPanel>
             </SplitView.Pane>
             <SplitView.Content>
-                <StackPanel Orientation="Vertical">
-                    <StackPanel
-                        Orientation="Horizontal"
-                        Height="36">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Orientation="Horizontal" Height="40" Grid.Row="0">
                         <Button
                             x:Name="ContentMenuButton"
                             Content="&#xE700;"
                             FontFamily="Segoe MDL2 Assets"
-                            Width="48"
-                            Height="36"
+                            FontSize="20"
+                            Width="40"
+                            Height="40"
                             Click="MenuButton_Click"
                             Background="Transparent"
                             HorizontalAlignment="Left"
                             Visibility="Collapsed" />
                         <TextBlock Text="UnIRC" Margin="16,8,0,0" />
                     </StackPanel>
-                    <Frame x:Name="ContentFrame"></Frame>
-                </StackPanel>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <Frame x:Name="ContentFrame"/>
+                    </ScrollViewer>
+                </Grid>
             </SplitView.Content>
         </SplitView>
     </Grid>

@@ -10,6 +10,7 @@ namespace UnIRC.Models
         {
             MenuItems = new List<MenuItem>
             {
+                new MenuItem("\uE710", "Connect", typeof (NetworksView)),
                 new MenuItem("\uEC26", "Networks", typeof (NetworksView))
             };
             //MenuItems.Add(new MenuItem("\uE1CE", "Menu Item 2", typeof(Page2View)));
