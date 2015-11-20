@@ -25,6 +25,8 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             
             <!-- Begin Networks -->
@@ -69,6 +71,9 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <!-- Name: NetworkName -->
                     <Grid Padding="10">
@@ -79,24 +84,52 @@
                         <TextBlock Text="Name:" VerticalAlignment="Center" Padding="0,0,10,0" Grid.Column="0"/>
                         <TextBox
                             Text="{Binding NewNetworkName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            IsEnabled="{Binding IsDeletingNetwork, Converter={StaticResource NegateConverter}}" Grid.Column="1"/>
+                            IsEnabled="{Binding IsDeletingNetwork, Converter={StaticResource NegateConverter}}" Grid.Column="1"
+                            IsSpellCheckEnabled="False" InputScope="PersonalFullName"/>
                     </Grid>
-                    <!-- [] Network nick: [Nick] -->
-                    <Grid Margin="10" Grid.Row="2">
+                    <!-- [] Custom user info -->
+                    <CheckBox
+                            IsChecked="{Binding NewNetworkUseNetworkNick, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            IsEnabled="{Binding IsDeletingNetwork, Converter={StaticResource NegateConverter}}"
+                            Content="Custom user info" VerticalAlignment="Center" Margin="0,0,10,0" Grid.Row="2"/>
+                    <!-- Full Name: [FullName] -->
+                    <Grid Margin="10" Grid.Row="3">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
-                        <CheckBox
-                            IsChecked="{Binding NewNetworkUseNetworkNick, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            IsEnabled="{Binding IsDeletingNetwork, Converter={StaticResource NegateConverter}}"
-                            Content="Network nick:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="Full name:" VerticalAlignment="Center" Padding="0,0,10,0"/>
+                        <TextBox
+                            Text="{Binding NewNetworkFullName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            IsEnabled="{Binding CanEditNewNetworkNick}" Grid.Column="1"
+                            IsSpellCheckEnabled="False" InputScope="PersonalFullName"/>
+                    </Grid>
+                    <!-- Email Address: [EmailAddress] -->
+                    <Grid Margin="10" Grid.Row="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Email:" VerticalAlignment="Center" Padding="0,0,10,0"/>
+                        <TextBox
+                            Text="{Binding NewNetworkEmailAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            IsEnabled="{Binding CanEditNewNetworkNick}" Grid.Column="1"
+                            IsSpellCheckEnabled="False" InputScope="EmailNameOrAddress" />
+                    </Grid>
+                    <!-- Nick: [Nick] -->
+                    <Grid Margin="10" Grid.Row="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Nick:" VerticalAlignment="Center" Padding="0,0,10,0"/>
                         <TextBox
                             Text="{Binding NewNetworkNick, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            IsEnabled="{Binding CanEditNewNetworkNick}" Grid.Column="1"/>
+                            IsEnabled="{Binding CanEditNewNetworkNick}" Grid.Column="1"
+                            IsSpellCheckEnabled="False"/>
                     </Grid>
                     <!-- Backup nick: [BackupNick] -->
-                    <Grid Margin="10" Grid.Row="3">
+                    <Grid Margin="10" Grid.Row="6">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition/>
@@ -104,10 +137,11 @@
                         <TextBlock Text="Backup nick:" VerticalAlignment="Center" Padding="0,0,10,0"/>
                         <TextBox
                             Text="{Binding NewNetworkBackupNick, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            IsEnabled="{Binding CanEditNewNetworkNick}" Grid.Column="1"/>
+                            IsEnabled="{Binding CanEditNewNetworkNick}" Grid.Column="1"
+                            IsSpellCheckEnabled="False"/>
                     </Grid>
                     <!-- [Delete?] / OK / Cancel / [Delete] -->
-                    <Grid HorizontalAlignment="Center" Margin="10" Grid.Row="4">
+                    <Grid HorizontalAlignment="Center" Margin="10" Grid.Row="7">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
@@ -186,7 +220,8 @@
                             <TextBlock Text="Name (opt):" VerticalAlignment="Center" Padding="0,0,10,0"/>
                             <TextBox
                                 Text="{Binding NewServerName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                IsEnabled="{Binding IsDeletingServer, Converter={StaticResource NegateConverter}}" Grid.Column="1"/>
+                                IsEnabled="{Binding IsDeletingServer, Converter={StaticResource NegateConverter}}" Grid.Column="1"
+                                IsSpellCheckEnabled="False" InputScope="PersonalFullName"/>
                         </Grid>
                         <!-- Address: [Address] []SSL -->
                         <Grid Margin="10" Grid.Row="1">
@@ -199,7 +234,7 @@
                             <TextBox
                                 Text="{Binding NewServerAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 IsEnabled="{Binding IsDeletingServer, Converter={StaticResource NegateConverter}}" 
-                                IsSpellCheckEnabled="False" Margin="10,0" Grid.Column="1"/>
+                                IsSpellCheckEnabled="False" InputScope="EmailSmtpAddress" Margin="10,0" Grid.Column="1"/>
                             <CheckBox
                                 IsChecked="{Binding NewServerUseSsl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 IsEnabled="{Binding IsDeletingServer, Converter={StaticResource NegateConverter}}" 
@@ -215,7 +250,8 @@
                             <TextBlock Text="Port range:" VerticalAlignment="Center"/>
                             <TextBox
                                 Text="{Binding NewServerPortRange, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="10,0"
-                                IsEnabled="{Binding IsDeletingServer, Converter={StaticResource NegateConverter}}" Grid.Column="1"/>
+                                IsEnabled="{Binding IsDeletingServer, Converter={StaticResource NegateConverter}}" Grid.Column="1" InputScope="FormulaNumber"
+                                />
                             <Button
                                 Style="{StaticResource IconButton}" Content="&#xE710;" Command="{Binding AddPortRangeCommand}"
                                 IsEnabled="{Binding IsDeletingServer, Converter={StaticResource NegateConverter}}" Grid.Column="2"/>
@@ -277,14 +313,50 @@
             </Grid>
             <!-- End Servers -->
             
-            <!-- [] Use Network nick -->
-            <CheckBox
-                IsChecked="{Binding UseNetworkNick, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                IsEnabled="{Binding IsNetworkNickAvailable}" Grid.Row="2" Margin="0,10"
-                Content="Use Network nick" VerticalAlignment="Center"/>
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <!-- [] Use Network nick -->
+                <CheckBox
+                    IsChecked="{Binding UseNetworkNick, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    IsEnabled="{Binding IsNetworkNickAvailable}" Margin="0,10,10,10"
+                    Content="Use Network info" VerticalAlignment="Center"/>
+                <!-- [] Invisible mode -->
+                <CheckBox
+                    IsChecked="{Binding EnableInvisibleMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    Content="Invisible mode" Margin="10,10" VerticalAlignment="Center" Grid.Column="1"/>
+            </Grid>
+            
+            <!-- Full Name: [FullName] -->
+            <Grid Margin="0,10" Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Full name:" VerticalAlignment="Center" Padding="0,0,10,0"/>
+                <TextBox
+                    Text="{Binding FullName, Mode=TwoWay}"
+                    IsEnabled="{Binding UseNetworkNick, Converter={StaticResource NegateConverter}}" Grid.Column="1"
+                    IsSpellCheckEnabled="False" InputScope="PersonalFullName"/>
+            </Grid>
+            
+            <!-- Email Address: [EmailAddress] -->
+            <Grid Margin="0,10" Grid.Row="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Email:" VerticalAlignment="Center" Padding="0,0,10,0"/>
+                <TextBox
+                    Text="{Binding EmailAddress, Mode=TwoWay}"
+                    IsEnabled="{Binding UseNetworkNick, Converter={StaticResource NegateConverter}}" Grid.Column="1"
+                    IsSpellCheckEnabled="False" InputScope="EmailNameOrAddress"/>
+            </Grid>
 
-            <!-- Nick: [BackupNick] -->
-            <Grid Margin="10" Grid.Row="3">
+            <!-- Nick: [Nick] -->
+            <Grid Margin="0,10" Grid.Row="5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition/>
@@ -292,11 +364,12 @@
                 <TextBlock Text="Nick:" VerticalAlignment="Center" Padding="0,0,10,0"/>
                 <TextBox
                     Text="{Binding Nick, Mode=TwoWay}"
-                    IsEnabled="{Binding UseNetworkNick, Converter={StaticResource NegateConverter}}" Grid.Column="1"/>
+                    IsEnabled="{Binding UseNetworkNick, Converter={StaticResource NegateConverter}}" Grid.Column="1"
+                    IsSpellCheckEnabled="False"/>
             </Grid>
             
             <!-- Backup nick: [BackupNick] -->
-            <Grid Margin="10" Grid.Row="4">
+            <Grid Margin="0,10" Grid.Row="6">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition/>
@@ -304,7 +377,12 @@
                 <TextBlock Text="Backup nick:" VerticalAlignment="Center" Padding="0,0,10,0"/>
                 <TextBox
                     Text="{Binding BackupNick, Mode=TwoWay}"
-                    IsEnabled="{Binding UseNetworkNick, Converter={StaticResource NegateConverter}}" Grid.Column="1"/>
+                    IsEnabled="{Binding UseNetworkNick, Converter={StaticResource NegateConverter}}" Grid.Column="1"
+                    IsSpellCheckEnabled="False"/>
+            </Grid>
+            
+            <Grid Margin="0,10" Grid.Row="7" Width="200">
+                <Button Content="Connect" Command="{Binding ConnectCommand}" HorizontalAlignment="Stretch"/>
             </Grid>
 
         </Grid>

@@ -43,6 +43,21 @@ namespace UnIRC.Shared.ViewModels
         }
         private string _nick;
 
+        public string FullName
+        {
+            get { return _fullName; }
+            set { Set(ref _fullName, value); }
+        }
+        private string _fullName;
+
+        public string EmailAddress
+        {
+            get { return _emailAddress; }
+            set { Set(ref _emailAddress, value); }
+        }
+        private string _emailAddress;
+
+
         public string BackupNick
         {
             get { return _backupNick; }
@@ -64,13 +79,37 @@ namespace UnIRC.Shared.ViewModels
         }
         private string _globalBackupNick;
 
+        public string GlobalFullName
+        {
+            get { return _globalFullName; }
+            set { Set(ref _globalFullName, value); }
+        }
+        private string _globalFullName;
+
+        public string GlobalEmailAddress
+        {
+            get { return _globalEmailAddress; }
+            set { Set(ref _globalEmailAddress, value); }
+        }
+        private string _globalEmailAddress;
+
+
+
+        public bool EnableInvisibleMode
+        {
+            get { return _enableInvisibleMode; }
+            set { Set(ref _enableInvisibleMode, value); }
+        }
+        private bool _enableInvisibleMode = true;
+
+
         public bool UseNetworkNick
         {
             get { return _useNetworkNick; }
             set { Set(ref _useNetworkNick, value); }
         }
         private bool _useNetworkNick;
-
+        
         public bool IsNetworkNickAvailable
         {
             get { return _isNetworkNickAvailable; }
@@ -85,6 +124,20 @@ namespace UnIRC.Shared.ViewModels
         }
         private bool _newNetworkUseNetworkNick;
 
+        public string NewNetworkFullName
+        {
+            get { return _newNetworkFullName; }
+            set { Set(ref _newNetworkFullName, value); }
+        }
+        private string _newNetworkFullName;
+
+        public string NewNetworkEmailAddress
+        {
+            get { return _newNetworkEmailAddress; }
+            set { Set(ref _newNetworkEmailAddress, value); }
+        }
+        private string _newNetworkEmailAddress;
+        
         public string NewNetworkNick
         {
             get { return _newNetworkNick; }
@@ -165,42 +218,112 @@ namespace UnIRC.Shared.ViewModels
 
             Register<NetworksModifiedMessage>(SaveNetworks);
 
-            this.OnChanged(x => x.SelectedNetwork)
-                .Do(() =>
-                {
-                    Send(new NetworksModifiedMessage());
-                    IsNetworkNickAvailable = SelectedNetwork?.UseNetworkNick ?? false;
-                    UseNetworkNick = IsNetworkNickAvailable;
-                    if (SelectedNetwork != null)
-                    {
-                        SelectedNetwork.SelectedServer = SelectedNetwork.Servers?.FirstOrDefault();
-                        SelectedNetwork.CancelServerOperationCommand.Execute();
-                    }
-                });
-
+            this.OnChanged(x => x.IsDeletingNetwork, x => x.NewNetworkUseNetworkNick)
+                .Do(() => CanEditNewNetworkNick = !IsDeletingNetwork && NewNetworkUseNetworkNick);
             // Switch nicks when we decide whether to use server nick
             this.OnChanged(x => x.UseNetworkNick)
                 .Do(() =>
                 {
                     if (IsNetworkNickAvailable && UseNetworkNick)
                     {
-                        Nick = SelectedNetwork?.Nick;
-                        BackupNick = SelectedNetwork?.BackupNick;
+                        FullName = SelectedNetwork.FullName;
+                        EmailAddress = SelectedNetwork.EmailAddress;
+                        Nick = SelectedNetwork.Nick;
+                        BackupNick = SelectedNetwork.BackupNick;
                     }
                     else
                     {
+                        FullName = GlobalFullName;
+                        EmailAddress = GlobalEmailAddress;
                         Nick = GlobalNick;
                         BackupNick = GlobalBackupNick;
                     }
                 });
+            this.OnChanged(x => x.SelectedNetwork)
+                .Do(() =>
+                {
+                    IsNetworkNickAvailable = SelectedNetwork?.UseNetworkNick ?? false;
+                    UseNetworkNick = IsNetworkNickAvailable;
+                    if (SelectedNetwork == null) return;
+                    SelectedNetwork.SelectedServer = SelectedNetwork.Servers?.FirstOrDefault();
+                    SelectedNetwork.CancelServerOperationCommand.Execute();
+                });
 
-            // Save nick nicks when they change
+#if WINDOWS_UWP
+            var networksJson = roamingSettings.Values["Networks"] as string;
+            var selectedNetworkJson = roamingSettings.Values["SelectedNetwork"] as string;
+            var selectedServerJson = roamingSettings.Values["SelectedServer"] as string;
+            var globalFullName = roamingSettings.Values["GlobalFullName"] as string;
+            var globalEmailAddress = roamingSettings.Values["GlobalEmailAddress"] as string;
+            var globalNick = roamingSettings.Values["GlobalNick"] as string;
+            var globalBackupNick = roamingSettings.Values["GlobalBackupNick"] as string;
+            var enableInvisibleMode = roamingSettings.Values["EnableInvisibleMode"] as string;
+
+            FullName = GlobalFullName = globalFullName;
+            EmailAddress = GlobalEmailAddress = globalEmailAddress;
+            Nick = GlobalNick = globalNick;
+            BackupNick = GlobalBackupNick = globalBackupNick;
+            EnableInvisibleMode = enableInvisibleMode == "true";
+
+            if (networksJson != null)
+            {
+                var networks = JsonConvert.DeserializeObject<List<Network>>(networksJson);
+                Networks = networks.Select(n => new NetworkViewModel(n)).ToObservable();
+
+                if (selectedNetworkJson != null)
+                {
+                    var selectedNetwork = JsonConvert.DeserializeObject<Network>(selectedNetworkJson);
+                    SelectedNetwork = Networks.FirstOrDefault(n => n.Network?.Name == selectedNetwork.Name);
+
+                    if (selectedServerJson != null)
+                    {
+                        var selectedServer = JsonConvert.DeserializeObject<Server>(selectedServerJson);
+                        SelectedNetwork.SelectedServer = SelectedNetwork.Servers
+                            .FirstOrDefault(s => s.Server?.DisplayName == selectedServer.DisplayName);
+                    } // SelectedServer
+                } // SelectedNetwork
+            } // Networks
+#endif
+            //
+            // Save state on modifications
+            //
+
+#if WINDOWS_UWP
+            this.OnChanged(x => x.EnableInvisibleMode)
+                .Do(() => roamingSettings.Values["EnableInvisibleMode"] = EnableInvisibleMode ? "true" : "false");
+            this.OnChanged(x => x.SelectedNetwork)
+                .Do(() =>
+                {
+                    roamingSettings.Values["SelectedNetwork"] = SelectedNetwork != null
+                        ? JsonConvert.SerializeObject(SelectedNetwork.Network)
+                        : null;
+                });
+#endif
+            // Save nicks when they change
+            this.OnChanged(x => x.FullName)
+                .Do(() =>
+                {
+                    if (UseNetworkNick || FullName == GlobalFullName) return;
+                    GlobalFullName = FullName;
+#if WINDOWS_UWP
+                    roamingSettings.Values["GlobalFullName"] = GlobalFullName;
+#endif
+                });
+            this.OnChanged(x => x.EmailAddress)
+                .Do(() =>
+                {
+                    if (UseNetworkNick || EmailAddress == GlobalEmailAddress) return;
+                    GlobalEmailAddress = EmailAddress;
+#if WINDOWS_UWP
+                    roamingSettings.Values["GlobalEmailAddress"] = GlobalEmailAddress;
+#endif
+                });
             this.OnChanged(x => x.Nick)
                 .Do(() =>
                 {
                     if (UseNetworkNick || Nick == GlobalNick) return;
-#if WINDOWS_UWP
                     GlobalNick = Nick;
+#if WINDOWS_UWP
                     roamingSettings.Values["GlobalNick"] = GlobalNick;
 #endif
                 });
@@ -208,40 +331,11 @@ namespace UnIRC.Shared.ViewModels
                 .Do(() =>
                 {
                     if (UseNetworkNick || BackupNick == GlobalBackupNick) return;
-#if WINDOWS_UWP
                     GlobalBackupNick = BackupNick;
+#if WINDOWS_UWP
                     roamingSettings.Values["GlobalBackupNick"] = GlobalBackupNick;
 #endif
                 });
-            this.OnChanged(x => x.IsDeletingNetwork, x => x.NewNetworkUseNetworkNick)
-                .Do(() => CanEditNewNetworkNick = !IsDeletingNetwork && NewNetworkUseNetworkNick);
-
-#if WINDOWS_UWP
-            var networksJson = roamingSettings.Values["Networks"] as string;
-            var selectedNetworkJson = roamingSettings.Values["SelectedNetwork"] as string;
-            var selectedServerJson = roamingSettings.Values["SelectedServer"] as string;
-            var globalNick = roamingSettings.Values["GlobalNick"] as string;
-            var globalBackupNick = roamingSettings.Values["GlobalBackupNick"] as string;
-
-            Nick = GlobalNick = globalNick;
-            BackupNick = GlobalBackupNick = globalBackupNick;
-
-            if (networksJson == null)
-                return;
-            var networks = JsonConvert.DeserializeObject<List<Network>>(networksJson);
-            Networks = networks.Select(n => new NetworkViewModel(n)).ToObservable();
-
-            if (selectedNetworkJson == null)
-                return;
-            var selectedNetwork = JsonConvert.DeserializeObject<Network>(selectedNetworkJson);
-            SelectedNetwork = Networks.FirstOrDefault(n => n.Network?.Name == selectedNetwork.Name);
-
-            if (selectedServerJson == null)
-                return;
-            var selectedServer = JsonConvert.DeserializeObject<Server>(selectedServerJson);
-            SelectedNetwork.SelectedServer = SelectedNetwork.Servers
-                .FirstOrDefault(s => s.Server?.DisplayName == selectedServer.DisplayName);
-#endif
         }
 
         private void SaveNetworks(NetworksModifiedMessage m)
@@ -250,9 +344,6 @@ namespace UnIRC.Shared.ViewModels
             ApplicationDataContainer roamingSettings = ApplicationData.Current.RoamingSettings;
             List<Network> networks = Networks?.Select(n => n.Network).ToList();
             roamingSettings.Values["Networks"] = Networks != null ? JsonConvert.SerializeObject(networks) : null;
-            roamingSettings.Values["SelectedNetwork"] = SelectedNetwork != null
-                ? JsonConvert.SerializeObject(SelectedNetwork.Network)
-                : null;
             roamingSettings.Values["SelectedServer"] = SelectedNetwork?.SelectedServer?.Server != null
                 ? JsonConvert.SerializeObject(SelectedNetwork.SelectedServer.Server)
                 : null;
@@ -320,6 +411,8 @@ namespace UnIRC.Shared.ViewModels
         {
             NewNetworkName = sourceNetwork?.Name;
             NewNetworkUseNetworkNick = sourceNetwork?.UseNetworkNick ?? false;
+            NewNetworkFullName = sourceNetwork?.FullName;
+            NewNetworkEmailAddress = sourceNetwork?.EmailAddress;
             NewNetworkNick = sourceNetwork?.Nick;
             NewNetworkBackupNick = sourceNetwork?.BackupNick;
         }
@@ -328,6 +421,8 @@ namespace UnIRC.Shared.ViewModels
         {
             targetNetwork.Name = NewNetworkName;
             targetNetwork.UseNetworkNick = NewNetworkUseNetworkNick;
+            targetNetwork.FullName = NewNetworkFullName;
+            targetNetwork.EmailAddress = NewNetworkEmailAddress;
             targetNetwork.Nick = NewNetworkNick;
             targetNetwork.BackupNick = NewNetworkBackupNick;
         }
@@ -336,6 +431,8 @@ namespace UnIRC.Shared.ViewModels
         {
             NewNetworkName = "";
             NewNetworkUseNetworkNick = false;
+            NewNetworkFullName = "";
+            NewNetworkEmailAddress = "";
             NewNetworkNick = "";
             NewNetworkBackupNick = "";
         }
