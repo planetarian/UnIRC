@@ -51,27 +51,6 @@ namespace UnIRC.Shared.ViewModels
         }
         private bool _useSsl;
 
-        public bool UseServerNick
-        {
-            get { return _useServerNick; }
-            set { Set(ref _useServerNick, value); }
-        }
-        private bool _useServerNick;
-
-        public string Nick
-        {
-            get { return _nick; }
-            set { Set(ref _nick, value); }
-        }
-        private string _nick;
-
-        public string BackupNick
-        {
-            get { return _backupNick; }
-            set { Set(ref _backupNick, value); }
-        }
-        private string _backupNick;
-
         public string DisplayName => Name.IsNullOrWhitespace() ? Server.ToString() : Name;
 
 
@@ -88,18 +67,12 @@ namespace UnIRC.Shared.ViewModels
             UseSsl = server.UseSsl;
             Password = server.Password;
             Ports = server.Ports?.ToObservable() ?? new ObservableCollection<PortRange>();
-            UseServerNick = server.UseServerNick;
-            Nick = server.Nick;
-            BackupNick = server.BackupNick;
 
             this.OnChanged(x => x.Name).Do(() => Server.Name = Name);
             this.OnChanged(x => x.Address).Do(() => Server.Address = Address);
             this.OnChanged(x => x.Password).Do(() => Server.Password = Password);
             this.OnChanged(x => x.Ports).Do(() => Server.Ports = Ports?.ToList());
             this.OnChanged(x => x.UseSsl).Do(() => Server.UseSsl = UseSsl);
-            this.OnChanged(x => x.UseServerNick).Do(() => Server.UseServerNick = UseServerNick);
-            this.OnChanged(x => x.Nick).Do(() => Server.Nick = Nick);
-            this.OnChanged(x => BackupNick).Do(() => Server.BackupNick = BackupNick);
             this.OnChanged(x => x.Name, x => x.Address, x => x.UseSsl, x => x.Ports)
                 .Do(() => RaisePropertyChanged(nameof(DisplayName)));
         }

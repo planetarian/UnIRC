@@ -5,9 +5,9 @@ namespace UnIRC.Shared.Messages
 {
     public class Message
     {
-        public string Name { get; protected set; }
-        public string Description { get; protected set; }
-        public DateTime Date { get; protected set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public DateTime Date { get; set; }
 
         public Message(string name, string description)
         {

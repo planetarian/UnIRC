@@ -5,13 +5,13 @@ namespace UnIRC.Shared.Messages
 {
     public class ErrorMessage : Message
     {
-        public string Details { get; private set; }
+        public string Details { get; set; }
         public bool IsError { get; set; }
         public bool Display { get; set; }
-        public Exception Exception { get; private set; }
-        public string FilePath { get; private set; }
-        public string MemberName { get; private set; }
-        public int LineNumber { get; private set; }
+        public Exception Exception { get; set; }
+        public string FilePath { get; set; }
+        public string MemberName { get; set; }
+        public int LineNumber { get; set; }
 
         public ErrorMessage(string description, string details = null,
             bool isError = true, bool display = true,

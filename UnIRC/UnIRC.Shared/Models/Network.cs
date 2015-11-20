@@ -6,5 +6,8 @@ namespace UnIRC.Models
     {
         public string Name { get; set; }
         public List<Server> Servers { get; set; }
+        public bool UseNetworkNick { get; set; }
+        public string Nick { get; set; }
+        public string BackupNick { get; set; }
     }
 }

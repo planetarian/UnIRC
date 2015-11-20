@@ -36,12 +36,77 @@ namespace UnIRC.Shared.ViewModels
         }
         private NetworkViewModel _selectedNetwork;
 
-        public Settings Settings
+        public string Nick
         {
-            get { return _settings; }
-            set { Set(ref _settings, value); }
+            get { return _nick; }
+            set { Set(ref _nick, value); }
         }
-        private Settings _settings;
+        private string _nick;
+
+        public string BackupNick
+        {
+            get { return _backupNick; }
+            set { Set(ref _backupNick, value); }
+        }
+        private string _backupNick;
+
+        public string GlobalNick
+        {
+            get { return _globalNick; }
+            set { Set(ref _globalNick, value); }
+        }
+        private string _globalNick;
+
+        public string GlobalBackupNick
+        {
+            get { return _globalBackupNick; }
+            set { Set(ref _globalBackupNick, value); }
+        }
+        private string _globalBackupNick;
+
+        public bool UseNetworkNick
+        {
+            get { return _useNetworkNick; }
+            set { Set(ref _useNetworkNick, value); }
+        }
+        private bool _useNetworkNick;
+
+        public bool IsNetworkNickAvailable
+        {
+            get { return _isNetworkNickAvailable; }
+            set { Set(ref _isNetworkNickAvailable, value); }
+        }
+        private bool _isNetworkNickAvailable;
+
+        public bool NewNetworkUseNetworkNick
+        {
+            get { return _newNetworkUseNetworkNick; }
+            set { Set(ref _newNetworkUseNetworkNick, value); }
+        }
+        private bool _newNetworkUseNetworkNick;
+
+        public string NewNetworkNick
+        {
+            get { return _newNetworkNick; }
+            set { Set(ref _newNetworkNick, value); }
+        }
+        private string _newNetworkNick;
+
+        public string NewNetworkBackupNick
+        {
+            get { return _newNetworkBackupNick; }
+            set { Set(ref _newNetworkBackupNick, value); }
+        }
+        private string _newNetworkBackupNick;
+
+        public bool CanEditNewNetworkNick
+        {
+            get { return _canEditNewNetworkNick; }
+            set { Set(ref _canEditNewNetworkNick, value); }
+        }
+        private bool _canEditNewNetworkNick;
+
+
 
         // Network editing properties:
 
@@ -88,6 +153,9 @@ namespace UnIRC.Shared.ViewModels
         public NetworksViewModel(INavigationService navigationService)
         {
             _navigationService = navigationService;
+#if WINDOWS_UWP
+            ApplicationDataContainer roamingSettings = ApplicationData.Current.RoamingSettings;
+#endif
 
             CreateNewNetworkCommand = GetCommand(CreateNewNetwork);
             EditNetworkCommand = GetCommand(EditNetwork, () => SelectedNetwork != null, () => SelectedNetwork);
@@ -101,15 +169,62 @@ namespace UnIRC.Shared.ViewModels
                 .Do(() =>
                 {
                     Send(new NetworksModifiedMessage());
+                    IsNetworkNickAvailable = SelectedNetwork?.UseNetworkNick ?? false;
+                    UseNetworkNick = IsNetworkNickAvailable;
                     if (SelectedNetwork != null)
+                    {
                         SelectedNetwork.SelectedServer = SelectedNetwork.Servers?.FirstOrDefault();
+                        SelectedNetwork.CancelServerOperationCommand.Execute();
+                    }
                 });
 
+            // Switch nicks when we decide whether to use server nick
+            this.OnChanged(x => x.UseNetworkNick)
+                .Do(() =>
+                {
+                    if (IsNetworkNickAvailable && UseNetworkNick)
+                    {
+                        Nick = SelectedNetwork?.Nick;
+                        BackupNick = SelectedNetwork?.BackupNick;
+                    }
+                    else
+                    {
+                        Nick = GlobalNick;
+                        BackupNick = GlobalBackupNick;
+                    }
+                });
+
+            // Save nick nicks when they change
+            this.OnChanged(x => x.Nick)
+                .Do(() =>
+                {
+                    if (UseNetworkNick || Nick == GlobalNick) return;
 #if WINDOWS_UWP
-            ApplicationDataContainer roamingSettings = ApplicationData.Current.RoamingSettings;
+                    GlobalNick = Nick;
+                    roamingSettings.Values["GlobalNick"] = GlobalNick;
+#endif
+                });
+            this.OnChanged(x => x.BackupNick)
+                .Do(() =>
+                {
+                    if (UseNetworkNick || BackupNick == GlobalBackupNick) return;
+#if WINDOWS_UWP
+                    GlobalBackupNick = BackupNick;
+                    roamingSettings.Values["GlobalBackupNick"] = GlobalBackupNick;
+#endif
+                });
+            this.OnChanged(x => x.IsDeletingNetwork, x => x.NewNetworkUseNetworkNick)
+                .Do(() => CanEditNewNetworkNick = !IsDeletingNetwork && NewNetworkUseNetworkNick);
+
+#if WINDOWS_UWP
             var networksJson = roamingSettings.Values["Networks"] as string;
             var selectedNetworkJson = roamingSettings.Values["SelectedNetwork"] as string;
             var selectedServerJson = roamingSettings.Values["SelectedServer"] as string;
+            var globalNick = roamingSettings.Values["GlobalNick"] as string;
+            var globalBackupNick = roamingSettings.Values["GlobalBackupNick"] as string;
+
+            Nick = GlobalNick = globalNick;
+            BackupNick = GlobalBackupNick = globalBackupNick;
 
             if (networksJson == null)
                 return;
@@ -204,16 +319,25 @@ namespace UnIRC.Shared.ViewModels
         private void GetNetworkProperties(NetworkViewModel sourceNetwork)
         {
             NewNetworkName = sourceNetwork?.Name;
+            NewNetworkUseNetworkNick = sourceNetwork?.UseNetworkNick ?? false;
+            NewNetworkNick = sourceNetwork?.Nick;
+            NewNetworkBackupNick = sourceNetwork?.BackupNick;
         }
 
         private void ApplyNewNetworkProperties(NetworkViewModel targetNetwork)
         {
             targetNetwork.Name = NewNetworkName;
+            targetNetwork.UseNetworkNick = NewNetworkUseNetworkNick;
+            targetNetwork.Nick = NewNetworkNick;
+            targetNetwork.BackupNick = NewNetworkBackupNick;
         }
 
         private void ClearNetworkForm()
         {
             NewNetworkName = "";
+            NewNetworkUseNetworkNick = false;
+            NewNetworkNick = "";
+            NewNetworkBackupNick = "";
         }
 
         private void DeleteSelectedNetwork()

@@ -17,78 +17,155 @@
         <SolidColorBrush x:Key="WarningForeground" Color="Red"/>
     </Page.Resources>
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Padding="10">
-        <StackPanel Width="310" HorizontalAlignment="Left">
-            <TextBlock Text="Network:"/>
-            <StackPanel MinHeight="50">
-                <StackPanel
+        <Grid Width="310" HorizontalAlignment="Left">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            
+            <!-- Begin Networks -->
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <!-- Network Selector -->
+                <TextBlock Text="Network:"/>
+                <Grid Grid.Row="1"
                     Padding="0,10"
-                    VerticalAlignment="Top"
-                    Orientation="Horizontal"
                     Visibility="{Binding IsEditingNetwork,
                     Converter={StaticResource IsFalseVisibilityConverter}}">
-                    <ComboBox ItemsSource="{Binding Networks}" SelectedItem="{Binding SelectedNetwork, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DisplayMemberPath="Name" Width="220"/>
-                    <Button Style="{StaticResource IconButton}" Content="&#xE710;" Command="{Binding CreateNewNetworkCommand}" />
-                    <Button Style="{StaticResource IconButton}" Content="&#xE70F;" Command="{Binding EditNetworkCommand}" />
-                    <!--<Button Style="{StaticResource IconButton}" Content="&#xE74D;" Command="{Binding DeleteNetworkCommand}"/>-->
-                </StackPanel>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox
+                        ItemsSource="{Binding Networks}" DisplayMemberPath="Name"
+                        SelectedItem="{Binding SelectedNetwork,
+                        Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        Margin="0,2,10,0" HorizontalAlignment="Stretch" />
+                    <Button
+                        Style="{StaticResource IconButton}" Grid.Column="1"
+                        Command="{Binding CreateNewNetworkCommand}" Content="&#xE710;" />
+                    <Button
+                        Style="{StaticResource IconButton}" Grid.Column="2"
+                        Command="{Binding EditNetworkCommand}" Content="&#xE70F;" />
+                </Grid>
+                <!-- Network Editor -->
                 <Grid
-                    VerticalAlignment="Top"
+                    Grid.Row="2"
                     Background="{ThemeResource SystemControlBackgroundBaseLowBrush}"
                     Visibility="{Binding IsEditingNetwork,
                     Converter={StaticResource IsTrueVisibilityConverter}}">
-                    <StackPanel Orientation="Vertical">
-                        <Grid Padding="10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Name:" VerticalAlignment="Center" Padding="0,0,10,0" Grid.Column="0"/>
-                            <TextBox
-                                Text="{Binding NewNetworkName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                IsEnabled="{Binding IsDeletingNetwork, Converter={StaticResource NegateConverter}}" Grid.Column="1"/>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <!-- Name: NetworkName -->
+                    <Grid Padding="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Name:" VerticalAlignment="Center" Padding="0,0,10,0" Grid.Column="0"/>
+                        <TextBox
+                            Text="{Binding NewNetworkName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            IsEnabled="{Binding IsDeletingNetwork, Converter={StaticResource NegateConverter}}" Grid.Column="1"/>
+                    </Grid>
+                    <!-- [] Network nick: [Nick] -->
+                    <Grid Margin="10" Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <CheckBox
+                            IsChecked="{Binding NewNetworkUseNetworkNick, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            IsEnabled="{Binding IsDeletingNetwork, Converter={StaticResource NegateConverter}}"
+                            Content="Network nick:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBox
+                            Text="{Binding NewNetworkNick, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            IsEnabled="{Binding CanEditNewNetworkNick}" Grid.Column="1"/>
+                    </Grid>
+                    <!-- Backup nick: [BackupNick] -->
+                    <Grid Margin="10" Grid.Row="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Backup nick:" VerticalAlignment="Center" Padding="0,0,10,0"/>
+                        <TextBox
+                            Text="{Binding NewNetworkBackupNick, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            IsEnabled="{Binding CanEditNewNetworkNick}" Grid.Column="1"/>
+                    </Grid>
+                    <!-- [Delete?] / OK / Cancel / [Delete] -->
+                    <Grid HorizontalAlignment="Center" Margin="10" Grid.Row="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Style="{StaticResource IconButton}" Content="&#xE10B;" Command="{Binding SaveNetworkCommand}"/>
+                        <Grid Visibility="{Binding IsDeletingNetwork, Converter={StaticResource IsTrueVisibilityConverter}}" Grid.Column="1">
+                            <Grid Background="{StaticResource WarningBackground}"/>
+                            <TextBlock Text="Delete network?" Foreground="{StaticResource WarningForeground}" Margin="16,8" FontWeight="SemiBold"/>
                         </Grid>
-                        <Grid HorizontalAlignment="Center" Padding="10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid Visibility="{Binding IsDeletingNetwork, Converter={StaticResource IsTrueVisibilityConverter}}">
-                                <Grid Background="{StaticResource WarningBackground}"/>
-                                <TextBlock Text="Delete network?" Foreground="{StaticResource WarningForeground}" Margin="16,8" FontWeight="SemiBold"/>
-                            </Grid>
-                            <Button Style="{StaticResource IconButton}" Content="&#xE10B;" Command="{Binding SaveNetworkCommand}" Grid.Column="1"/>
-                            <Button Style="{StaticResource IconButton}" Content="&#xE711;" Command="{Binding CancelNetworkOperationCommand}" Grid.Column="2"/>
-                            <Button
-                                Style="{StaticResource IconButton}" Content="&#xE74D;" Command="{Binding DeleteNetworkCommand}"
-                                IsEnabled="{Binding IsAddingNewNetwork, Converter={StaticResource NegateConverter}}"
-                                Visibility="{Binding IsDeletingNetwork, Converter={StaticResource IsFalseVisibilityConverter}}" Grid.Column="3"/>
-                        </Grid>
-                    </StackPanel>
+                        <Button Style="{StaticResource IconButton}" Content="&#xE711;" Command="{Binding CancelNetworkOperationCommand}" Grid.Column="2"/>
+                        <Button
+                            Style="{StaticResource IconButton}" Content="&#xE74D;" Command="{Binding DeleteNetworkCommand}"
+                            IsEnabled="{Binding IsAddingNewNetwork, Converter={StaticResource NegateConverter}}"
+                            Visibility="{Binding IsDeletingNetwork, Converter={StaticResource IsFalseVisibilityConverter}}" Grid.Column="3"/>
+                    </Grid>
                 </Grid>
-            </StackPanel>
+            </Grid>
+            <!-- End Networks -->
+            
+            <!-- Begin Servers -->
             <Grid
+                Grid.Row="1"
                 Visibility="{Binding SelectedNetwork,
                 Converter={StaticResource IsNotNullVisibilityConverter}}">
-                <StackPanel DataContext="{Binding SelectedNetwork}">
+                <Grid DataContext="{Binding SelectedNetwork}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <!-- Server Selector -->
                     <TextBlock Text="Server:"/>
-                    <StackPanel
-                        Padding="0,10"
-                        Orientation="Horizontal"
+                    <Grid
+                        Padding="0,10" Grid.Row="1"
                         Visibility="{Binding IsEditingServer,
                         Converter={StaticResource IsFalseVisibilityConverter}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
                         <ComboBox
-                            ItemsSource="{Binding Servers}"
-                            SelectedItem="{Binding SelectedServer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            DisplayMemberPath="DisplayName"
-                            Width="220"/>
-                        <Button Style="{StaticResource IconButton}" Content="&#xE710;" Command="{Binding CreateNewServerCommand}" />
-                        <Button Style="{StaticResource IconButton}" Content="&#xE70F;" Command="{Binding EditServerCommand}" />
-                        <!--<Button Style="{StaticResource IconButton}" Content="&#xE74D;" Command="{Binding DeleteServerCommand}"/>-->
-                    </StackPanel>
+                            ItemsSource="{Binding Servers}" DisplayMemberPath="DisplayName"
+                            SelectedItem="{Binding SelectedServer,
+                            Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            HorizontalAlignment="Stretch" Margin="0,2,10,0"/>
+                        <Button
+                            Style="{StaticResource IconButton}" Grid.Column="1" VerticalAlignment="Center"
+                            Command="{Binding CreateNewServerCommand}" Content="&#xE710;" />
+                        <Button
+                            Style="{StaticResource IconButton}" Grid.Column="2" VerticalAlignment="Center"
+                            Command="{Binding EditServerCommand}" Content="&#xE70F;" />
+                    </Grid>
+                    <!-- Server Editor -->
                     <Grid
-                        VerticalAlignment="Top"
+                        VerticalAlignment="Top" Grid.Row="2"
                         Background="{ThemeResource SystemControlBackgroundBaseLowBrush}"
                         Visibility="{Binding IsEditingServer,
                         Converter={StaticResource IsTrueVisibilityConverter}}">
@@ -99,10 +176,8 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
+                        <!-- Name: [ServerName] -->
                         <Grid Margin="10" Grid.Row="0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -113,6 +188,7 @@
                                 Text="{Binding NewServerName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 IsEnabled="{Binding IsDeletingServer, Converter={StaticResource NegateConverter}}" Grid.Column="1"/>
                         </Grid>
+                        <!-- Address: [Address] []SSL -->
                         <Grid Margin="10" Grid.Row="1">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -129,6 +205,7 @@
                                 IsEnabled="{Binding IsDeletingServer, Converter={StaticResource NegateConverter}}" 
                                 Content="SSL" MinWidth="65" Grid.Column="2"/>
                         </Grid>
+                        <!-- Port range: [PortRange] [+] -->
                         <Grid Margin="10" Grid.Row="2">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -143,6 +220,7 @@
                                 Style="{StaticResource IconButton}" Content="&#xE710;" Command="{Binding AddPortRangeCommand}"
                                 IsEnabled="{Binding IsDeletingServer, Converter={StaticResource NegateConverter}}" Grid.Column="2"/>
                         </Grid>
+                        <!-- Ports [Ports ..] [T] -->
                         <Grid Margin="10" Grid.Row="3">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -159,6 +237,7 @@
                                 Content="&#xE74D;" Command="{Binding DeleteSelectedPortRangeCommand}"
                                 IsEnabled="{Binding IsDeletingServer, Converter={StaticResource NegateConverter}}"/>
                         </Grid>
+                        <!-- Password (opt): [********] -->
                         <Grid Margin="10" Grid.Row="4">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -169,46 +248,21 @@
                                 Password="{Binding NewServerPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 IsEnabled="{Binding IsDeletingServer, Converter={StaticResource NegateConverter}}" Grid.Column="1"/>
                         </Grid>
-                        <Grid Margin="10" Grid.Row="5">
-                            <CheckBox
-                                IsChecked="{Binding NewServerUseServerNick, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                IsEnabled="{Binding IsDeletingServer, Converter={StaticResource NegateConverter}}"
-                                Content="Use server nick" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        </Grid>
-                        <Grid Margin="10" Grid.Row="6">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Server nick:" VerticalAlignment="Center" Padding="0,0,10,0"/>
-                            <TextBox
-                                Text="{Binding NewServerNick, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                IsEnabled="{Binding CanEditNewServerNick}" Grid.Column="1"/>
-                        </Grid>
-                        <Grid Margin="10" Grid.Row="7">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Backup nick:" VerticalAlignment="Center" Padding="0,0,10,0"/>
-                            <TextBox
-                                Text="{Binding NewServerBackupNick, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                IsEnabled="{Binding CanEditNewServerNick}" Grid.Column="1"/>
-                        </Grid>
-                        <Grid Margin="10" Grid.Row="8" HorizontalAlignment="Center">
+                        <!-- [Delete?] [Ok] [X] [T] -->
+                        <Grid Margin="10" Grid.Row="5" HorizontalAlignment="Center">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <Grid Visibility="{Binding IsDeletingServer, Converter={StaticResource IsTrueVisibilityConverter}}">
+                            <Button
+                                Style="{StaticResource IconButton}"
+                                Content="&#xE10B;" Command="{Binding SaveServerCommand}" />
+                            <Grid Visibility="{Binding IsDeletingServer, Converter={StaticResource IsTrueVisibilityConverter}}" Grid.Column="1">
                                 <Grid Background="{StaticResource WarningBackground}"/>
                                 <TextBlock Text="Delete server?" Foreground="{StaticResource WarningForeground}" Margin="16,8" FontWeight="SemiBold"/>
                             </Grid>
-                            <Button
-                                Style="{StaticResource IconButton}" Grid.Column="1"
-                                Content="&#xE10B;" Command="{Binding SaveServerCommand}" />
                             <Button
                                 Style="{StaticResource IconButton}" Grid.Column="2"
                                 Content="&#xE711;" Command="{Binding CancelServerOperationCommand}" />
@@ -219,8 +273,40 @@
                                 Visibility="{Binding IsDeletingServer, Converter={StaticResource IsFalseVisibilityConverter}}"/>
                         </Grid>
                     </Grid>
-                </StackPanel>
+                </Grid>
             </Grid>
-        </StackPanel>
+            <!-- End Servers -->
+            
+            <!-- [] Use Network nick -->
+            <CheckBox
+                IsChecked="{Binding UseNetworkNick, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                IsEnabled="{Binding IsNetworkNickAvailable}" Grid.Row="2" Margin="0,10"
+                Content="Use Network nick" VerticalAlignment="Center"/>
+
+            <!-- Nick: [BackupNick] -->
+            <Grid Margin="10" Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Nick:" VerticalAlignment="Center" Padding="0,0,10,0"/>
+                <TextBox
+                    Text="{Binding Nick, Mode=TwoWay}"
+                    IsEnabled="{Binding UseNetworkNick, Converter={StaticResource NegateConverter}}" Grid.Column="1"/>
+            </Grid>
+            
+            <!-- Backup nick: [BackupNick] -->
+            <Grid Margin="10" Grid.Row="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Backup nick:" VerticalAlignment="Center" Padding="0,0,10,0"/>
+                <TextBox
+                    Text="{Binding BackupNick, Mode=TwoWay}"
+                    IsEnabled="{Binding UseNetworkNick, Converter={StaticResource NegateConverter}}" Grid.Column="1"/>
+            </Grid>
+
+        </Grid>
     </Grid>
 </Page>

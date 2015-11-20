@@ -95,33 +95,26 @@ namespace UnIRC.Shared.ViewModels
         }
         private bool _newServerUseSsl;
 
-        public bool NewServerUseServerNick
+        public bool UseNetworkNick
         {
-            get { return _newServerUseServerNick;}
-            set { Set(ref _newServerUseServerNick, value); }
+            get { return _useNetworkNick; }
+            set { Set(ref _useNetworkNick, value); }
         }
-        private bool _newServerUseServerNick;
+        private bool _useNetworkNick;
 
-        public string NewServerNick
+        public string Nick
         {
-            get { return _newServerNick; }
-            set { Set(ref _newServerNick, value); }
+            get { return _nick; }
+            set { Set(ref _nick, value); }
         }
-        private string _newServerNick;
+        private string _nick;
 
-        public string NewServerBackupNick
+        public string BackupNick
         {
-            get { return _newServerBackupNick; }
-            set { Set(ref _newServerBackupNick, value); }
+            get { return _backupNick; }
+            set { Set(ref _backupNick, value); }
         }
-        private string _newServerBackupNick;
-
-        public bool CanEditNewServerNick
-        {
-            get { return _canEditNewServerNick; }
-            set { Set(ref _canEditNewServerNick, value); }
-        }
-        private bool _canEditNewServerNick;
+        private string _backupNick;
 
 
         // State
@@ -170,6 +163,9 @@ namespace UnIRC.Shared.ViewModels
             Name = network.Name;
             Servers = network.Servers?.Select(s => new ServerViewModel(s)).ToObservable()
                       ?? new ObservableCollection<ServerViewModel>();
+            UseNetworkNick = network.UseNetworkNick;
+            Nick = network.Nick;
+            BackupNick = network.BackupNick;
 
             CreateNewServerCommand = GetCommand(CreateNewServer);
             EditServerCommand = GetCommand(EditServer, () => SelectedServer != null, () => SelectedServer);
@@ -186,19 +182,9 @@ namespace UnIRC.Shared.ViewModels
             this.OnChanged(x => x.Name).Do(() => Network.Name = Name);
             this.OnChanged(x => x.Servers).Do(() => Network.Servers = Servers?.Select(s => s.Server).ToList());
             this.OnChanged(x => x.SelectedServer, x => x.SelectedPortRange).Do(() => Send(new NetworksModifiedMessage()));
-            this.OnChanged(x => x.IsDeletingServer, x => x.NewServerUseServerNick)
-                .Do(() => CanEditNewServerNick = !IsDeletingServer && NewServerUseServerNick);
-        }
-
-        private bool ValidateNewServerData()
-        {
-            string serverDisplayName = Server.GetServerDisplayName(NewServerAddress, NewServerPorts, NewServerUseSsl);
-            string newName = NewServerName.IsNullOrWhitespace() ? serverDisplayName : NewServerName;
-            return !NewServerAddress.IsNullOrEmpty()
-                   && NewServerPorts != null
-                   && NewServerPorts.Count > 0
-                   && Servers != null
-                   && !Servers.Select(s => s.DisplayName).Contains(newName);
+            this.OnChanged(x => x.UseNetworkNick).Do(() => Network.UseNetworkNick = UseNetworkNick);
+            this.OnChanged(x => x.Nick).Do(() => Network.Nick = Nick);
+            this.OnChanged(x => x.BackupNick).Do(() => Network.BackupNick = BackupNick);
         }
 
 
@@ -266,9 +252,6 @@ namespace UnIRC.Shared.ViewModels
             NewServerPassword = sourceServer?.Password;
             NewServerPorts = sourceServer?.Ports.ToObservable();
             NewServerUseSsl = sourceServer?.UseSsl ?? false;
-            NewServerUseServerNick = sourceServer?.UseServerNick ?? false;
-            NewServerNick = sourceServer?.Nick;
-            NewServerBackupNick = sourceServer?.BackupNick;
         }
 
         private void ApplyNewServerProperties(ServerViewModel targetServer)
@@ -278,9 +261,6 @@ namespace UnIRC.Shared.ViewModels
             targetServer.Password = NewServerPassword;
             targetServer.Ports = NewServerPorts;
             targetServer.UseSsl = NewServerUseSsl;
-            targetServer.UseServerNick = NewServerUseServerNick;
-            targetServer.Nick = NewServerNick;
-            targetServer.BackupNick = NewServerBackupNick;
         }
 
         private void ClearServerForm()
@@ -291,14 +271,25 @@ namespace UnIRC.Shared.ViewModels
             NewServerPortRange = "";
             NewServerPorts = new ObservableCollection<PortRange>();
             NewServerUseSsl = false;
-            NewServerUseServerNick = false;
-            NewServerNick = "";
-            NewServerBackupNick = "";
         }
 
         private void DeleteSelectedServer()
         {
             IsDeletingServer = true;
+        }
+
+        private bool ValidateNewServerData()
+        {
+            string serverDisplayName = Server.GetServerDisplayName(NewServerAddress, NewServerPorts, NewServerUseSsl);
+            string newName = NewServerName.IsNullOrWhitespace() ? serverDisplayName : NewServerName;
+            return !NewServerAddress.IsNullOrEmpty()
+                   && NewServerPorts != null
+                   && NewServerPorts.Count > 0
+                   && Servers != null
+                   && !Servers
+                       .Where(s => s.Server.DisplayName != SelectedServer.Server.DisplayName)
+                       .Select(s => s.DisplayName)
+                       .Contains(newName);
         }
 
         private bool ValidateNewServerPortRange()

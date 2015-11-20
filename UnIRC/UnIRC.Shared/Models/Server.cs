@@ -12,9 +12,6 @@ namespace UnIRC.Models
         public List<PortRange> Ports { get; set; }
         public string Password { get; set; }
         public bool UseSsl { get; set; }
-        public bool UseServerNick { get; set; }
-        public string Nick { get; set; }
-        public string BackupNick { get; set; }
 
         [JsonIgnore]
         public string DisplayName => Name.IsNullOrWhitespace() ? ToString() : Name;
