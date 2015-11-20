@@ -140,7 +140,7 @@
                             IsEnabled="{Binding CanEditNewNetworkNick}" Grid.Column="1"
                             IsSpellCheckEnabled="False"/>
                     </Grid>
-                    <!-- [Delete?] / OK / Cancel / [Delete] -->
+                    <!-- [Delete?] [OK] [T] [X] -->
                     <Grid HorizontalAlignment="Center" Margin="10" Grid.Row="7">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -153,11 +153,11 @@
                             <Grid Background="{StaticResource WarningBackground}"/>
                             <TextBlock Text="Delete network?" Foreground="{StaticResource WarningForeground}" Margin="16,8" FontWeight="SemiBold"/>
                         </Grid>
-                        <Button Style="{StaticResource IconButton}" Content="&#xE711;" Command="{Binding CancelNetworkOperationCommand}" Grid.Column="2"/>
                         <Button
                             Style="{StaticResource IconButton}" Content="&#xE74D;" Command="{Binding DeleteNetworkCommand}"
                             IsEnabled="{Binding IsAddingNewNetwork, Converter={StaticResource NegateConverter}}"
-                            Visibility="{Binding IsDeletingNetwork, Converter={StaticResource IsFalseVisibilityConverter}}" Grid.Column="3"/>
+                            Visibility="{Binding IsDeletingNetwork, Converter={StaticResource IsFalseVisibilityConverter}}" Grid.Column="2"/>
+                        <Button Style="{StaticResource IconButton}" Content="&#xE711;" Command="{Binding CancelNetworkOperationCommand}" Grid.Column="3"/>
                     </Grid>
                 </Grid>
             </Grid>
@@ -284,7 +284,7 @@
                                 Password="{Binding NewServerPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 IsEnabled="{Binding IsDeletingServer, Converter={StaticResource NegateConverter}}" Grid.Column="1"/>
                         </Grid>
-                        <!-- [Delete?] [Ok] [X] [T] -->
+                        <!-- [Delete?] [Ok] [T] [X] -->
                         <Grid Margin="10" Grid.Row="5" HorizontalAlignment="Center">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -301,12 +301,12 @@
                             </Grid>
                             <Button
                                 Style="{StaticResource IconButton}" Grid.Column="2"
-                                Content="&#xE711;" Command="{Binding CancelServerOperationCommand}" />
-                            <Button
-                                Style="{StaticResource IconButton}" Grid.Column="3"
                                 Content="&#xE74D;" Command="{Binding DeleteServerCommand}"
                                 IsEnabled="{Binding IsAddingNewServer, Converter={StaticResource NegateConverter}}"
                                 Visibility="{Binding IsDeletingServer, Converter={StaticResource IsFalseVisibilityConverter}}"/>
+                            <Button
+                                Style="{StaticResource IconButton}" Grid.Column="3"
+                                Content="&#xE711;" Command="{Binding CancelServerOperationCommand}" />
                         </Grid>
                     </Grid>
                 </Grid>

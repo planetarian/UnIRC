@@ -11,6 +11,15 @@
     DataContext="{Binding Main, Source={StaticResource Locator}}">
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.Resources>
+            <Style x:Key="NavButtonStyle" TargetType="Button">
+                <Setter Property="Content" Value="&#xE700;"/>
+                <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+                <Setter Property="FontSize" Value="20"/>
+                <Setter Property="Width" Value="40"/>
+                <Setter Property="Height" Value="40"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="HorizontalAlignment" Value="Left"/>
+            </Style>
             <Style x:Key="GlyphStyle" TargetType="TextBlock">
                 <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
                 <Setter Property="FontSize" Value="16"/>
@@ -32,9 +41,11 @@
                     <TextBlock Text="{Binding Title}" Style="{StaticResource MenuItemStyle}" Grid.Column="1"/>
                 </Grid>
             </DataTemplate>
+            <!--
             <Style x:Key="FixedMenuItemContainerStyle" TargetType="ListBoxItem">
                 <Setter Property="Padding" Value="12,5"/>
             </Style>
+            -->
             <Style x:Key="FixedMenuStyle" TargetType="ListBox">
                 <Setter Property="HorizontalAlignment" Value="Left"/>
                 <Setter Property="Background" Value="Transparent"/>
@@ -85,14 +96,8 @@
                     </Grid.RowDefinitions>
                     <Button
                         x:Name="NavButton"
-                        Content="&#xE700;"
-                        FontFamily="Segoe MDL2 Assets"
-                        FontSize="20"
-                        Width="40"
-                        Height="40"
+                        Style="{StaticResource NavButtonStyle}"
                         Click="MenuButton_Click"
-                        Background="Transparent"
-                        HorizontalAlignment="Left"
                         Grid.Row="0"/>
                     <ListBox
                         x:Name="UpperFixedMenu"
@@ -138,15 +143,10 @@
                     <StackPanel Orientation="Horizontal" Height="40" Grid.Row="0">
                         <Button
                             x:Name="ContentMenuButton"
-                            Content="&#xE700;"
-                            FontFamily="Segoe MDL2 Assets"
-                            FontSize="20"
-                            Width="40"
-                            Height="40"
+                            Style="{StaticResource NavButtonStyle}"
                             Click="MenuButton_Click"
-                            Background="Transparent"
-                            HorizontalAlignment="Left"
-                            Visibility="Collapsed" />
+                            Visibility="Collapsed">
+                        </Button>
                         <TextBlock Text="UnIRC" Margin="16,8,0,0" />
                     </StackPanel>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
