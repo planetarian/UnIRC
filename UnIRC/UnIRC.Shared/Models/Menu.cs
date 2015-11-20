@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using UnIRC.Views;
 
 namespace UnIRC.Models
 {
@@ -10,8 +9,8 @@ namespace UnIRC.Models
         {
             MenuItems = new List<MenuItem>
             {
-                new MenuItem("\uE710", "Connect", typeof (NetworksView)),
-                new MenuItem("\uE81C", "Log", typeof (LogView))
+                new MenuItem("\uE710", "Connect", "Networks"),
+                new MenuItem("\uE81C", "Log", "Log")
             };
             //MenuItems.Add(new MenuItem("\uE1CE", "Menu Item 2", typeof(Page2View)));
             //MenuItems.Add(new MenuItem("\uE1CE", "Menu Item 3", typeof(Page3View)));

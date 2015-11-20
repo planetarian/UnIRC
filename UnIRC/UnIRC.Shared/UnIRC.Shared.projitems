@@ -13,6 +13,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Messages\ConnectMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Messages\NetworksModifiedMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\IConnectionEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Menu.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\MenuItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Settings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\IsFalseVisibilityConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\IsNotNullVisibilityConverter.cs" />

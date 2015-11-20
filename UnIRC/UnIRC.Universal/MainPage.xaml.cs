@@ -1,7 +1,10 @@
-﻿using Windows.Foundation;
+﻿using System;
+using System.Collections.Generic;
+using Windows.Foundation;
 using Windows.UI.ViewManagement;
 using UnIRC.Models;
 using Windows.UI.Xaml.Controls;
+using UnIRC.Views;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -12,6 +15,13 @@ namespace UnIRC
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        private Dictionary<string, Type> Views
+            = new Dictionary<string, Type>
+            {
+                {"Networks", typeof (NetworksView)},
+                {"Log", typeof (LogView)}
+            };
+
         public MainPage()
         {
             InitializeComponent();
@@ -23,7 +33,11 @@ namespace UnIRC
             var list = (ListBox)sender;
             if (list.SelectedIndex == -1)
                 return;
-            ContentFrame.Navigate((list.SelectedItem as MenuItem)?.View);
+
+            string key = (list.SelectedItem as MenuItem)?.ViewKey;
+            if (Views.ContainsKey(key))
+                ContentFrame.Navigate(Views[key]);
+
             if (NavigationSplitView.DisplayMode == SplitViewDisplayMode.CompactOverlay || NavigationSplitView.DisplayMode == SplitViewDisplayMode.Overlay)
                 NavigationSplitView.IsPaneOpen = false;
         }
