@@ -9,34 +9,36 @@
     mc:Ignorable="d"
     DataContext="{Binding Main, Source={StaticResource Locator}}">
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <TextBlock Text="Messages:"/>
-        <ListBox ItemsSource="{Binding Messages}" Grid.Row="1">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <Grid Background="LightGray">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <TextBlock Text="{Binding Name}" Margin="10,3"/>
-                        <TextBlock Text="{Binding Date}" Margin="10,3" Grid.Row="0" Grid.Column="1"/>
-                        <TextBlock Text="{Binding Description}" Margin="10,3" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"/>
-                        <TextBlock Text="{Binding FilePath}" Margin="10,3" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"/>
-                        <TextBlock Text="{Binding MemberName}" Margin="10,3" Grid.Row="3" Grid.Column="0"/>
-                        <TextBlock Text="{Binding LineNumber}" Margin="10,3" Grid.Row="3" Grid.Column="1"/>
-                    </Grid>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Text="Messages:"/>
+            <ListBox ItemsSource="{Binding Messages}" Grid.Row="1">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Background="LightGray">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="{Binding Name}" Margin="10,3"/>
+                            <TextBlock Text="{Binding Date}" Margin="10,3" Grid.Row="0" Grid.Column="1"/>
+                            <TextBlock Text="{Binding Description}" Margin="10,3" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"/>
+                            <TextBlock Text="{Binding FilePath}" Margin="10,3" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"/>
+                            <TextBlock Text="{Binding MemberName}" Margin="10,3" Grid.Row="3" Grid.Column="0"/>
+                            <TextBlock Text="{Binding LineNumber}" Margin="10,3" Grid.Row="3" Grid.Column="1"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
     </Grid>
 </Page>

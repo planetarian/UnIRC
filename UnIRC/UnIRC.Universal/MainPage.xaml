@@ -6,9 +6,42 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:UnIRC.Models"
+    xmlns:viewModels="using:UnIRC.Shared.ViewModels"
     mc:Ignorable="d"
-    DataContext="{Binding M, Source={StaticResource Locator}}">
+    DataContext="{Binding Main, Source={StaticResource Locator}}">
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.Resources>
+            <Style x:Key="GlyphStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="Width" Value="30"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+            <Style x:Key="MenuItemStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Padding" Value="0,0,0,1"/>
+            </Style>
+            <DataTemplate x:Key="FixedMenuItemTemplate" x:DataType="models:MenuItem">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding Icon}" Style="{StaticResource GlyphStyle}"/>
+                    <TextBlock Text="{Binding Title}" Style="{StaticResource MenuItemStyle}" Grid.Column="1"/>
+                </Grid>
+            </DataTemplate>
+            <Style x:Key="FixedMenuItemContainerStyle" TargetType="ListBoxItem">
+                <Setter Property="Padding" Value="12,5"/>
+            </Style>
+            <Style x:Key="FixedMenuStyle" TargetType="ListBox">
+                <Setter Property="HorizontalAlignment" Value="Left"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="ItemTemplate" Value="{StaticResource FixedMenuItemTemplate}"/>
+                <!-- <Setter Property="ItemContainerStyle" Value="{StaticResource FixedMenuItemContainerStyle}"/> -->
+            </Style>
+        </Grid.Resources>
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup>
                 <VisualState x:Name="WideMode">
@@ -38,59 +71,63 @@
                 </VisualState>
             </VisualStateGroup>
         </VisualStateManager.VisualStateGroups>
-        <SplitView x:Name="NavigationSplitView" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" DisplayMode="Overlay" CompactPaneLength="40">
+        <SplitView
+            x:Name="NavigationSplitView"
+            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+            DisplayMode="Overlay" CompactPaneLength="40">
             <SplitView.Pane>
-                <StackPanel Orientation="Vertical">
-                    <StackPanel.DataContext>
-                        <models:Menu />
-                    </StackPanel.DataContext>
-                    <StackPanel
-                        Orientation="Horizontal"
-                        Background="{ThemeResource
-                        SystemControlPageBackgroundChromeLowBrush}">
-                        <Button
-                            x:Name="NavButton"
-                            Content="&#xE700;"
-                            FontFamily="Segoe MDL2 Assets"
-                            FontSize="20"
-                            Width="40"
-                            Height="40"
-                            Click="MenuButton_Click"
-                            Background="Transparent"
-                            HorizontalAlignment="Left" />
-                    </StackPanel>
-                    <ListBox
-                        x:Name="Menu"
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Button
+                        x:Name="NavButton"
+                        Content="&#xE700;"
+                        FontFamily="Segoe MDL2 Assets"
+                        FontSize="20"
+                        Width="40"
+                        Height="40"
+                        Click="MenuButton_Click"
+                        Background="Transparent"
                         HorizontalAlignment="Left"
-                        VerticalAlignment="Top"
-                        SelectionChanged="Menu_SelectionChanged"
-                        ItemsSource="{Binding MenuItems}"
-                        Background="Transparent">
-                        <ListBox.ItemContainerStyle>
-                            <Style TargetType="ListBoxItem">
-                                <Setter Property="Padding" Value="10,5"/>
-                            </Style>
-                        </ListBox.ItemContainerStyle>
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock
-                                        x:Name="Glyph"
-                                        Text="{Binding Icon}"
-                                        FontFamily="Segoe MDL2 Assets"
-                                        FontSize="18"
-                                        Width="40"
-                                        VerticalAlignment="Center"/>
-                                    <TextBlock
-                                        Text="{Binding Title}"
-                                        FontSize="20"
-                                        VerticalAlignment="Center"
-                                        Padding="0,0,0,1"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </StackPanel>
+                        Grid.Row="0"/>
+                    <ListBox
+                        x:Name="UpperFixedMenu"
+                        SelectionChanged="MenuSelectionChanged"
+                        ItemsSource="{Binding UpperFixedMenu}"
+                        Style="{StaticResource FixedMenuStyle}"
+                        Grid.Row="1"/>
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                        <ListBox x:Name="ConnectionsMenu" ItemsSource="{Binding Connections}" SelectionChanged="MenuSelectionChanged">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="viewModels:ConnectionViewModel">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Text="&#xE17B;" Style="{StaticResource GlyphStyle}" Grid.Column="0"
+                                            Visibility="{Binding IsConnected, Converter={StaticResource IsTrueVisibilityConverter}}"/>
+                                        <TextBlock
+                                            Text="&#xE17A;" Style="{StaticResource GlyphStyle}" Grid.Column="0"
+                                            Visibility="{Binding IsConnected, Converter={StaticResource IsFalseVisibilityConverter}}"/>
+                                        <TextBlock Text="{Binding DisplayName}" Style="{StaticResource MenuItemStyle}" Grid.Column="1"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </ScrollViewer>
+                    <ListBox
+                        x:Name="LowerFixedMenu"
+                        SelectionChanged="MenuSelectionChanged"
+                        ItemsSource="{Binding LowerFixedMenu}"
+                        Style="{StaticResource FixedMenuStyle}"
+                        Grid.Row="3"/>
+                </Grid>
             </SplitView.Pane>
             <SplitView.Content>
                 <Grid>

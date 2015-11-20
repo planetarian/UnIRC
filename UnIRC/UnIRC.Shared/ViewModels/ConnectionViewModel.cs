@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Windows.Input;
 using UnIRC.Models;
 using UnIRC.Shared.Helpers;
 using UnIRC.ViewModels;
@@ -39,12 +40,12 @@ namespace UnIRC.Shared.ViewModels
         }
         private string _displayName;
 
-        public bool Connected
+        public bool IsConnected
         {
-            get { return _connected; }
-            set { Set(ref _connected, value); }
+            get { return _isConnected; }
+            set { Set(ref _isConnected, value); }
         }
-        private bool _connected;
+        private bool _isConnected;
 
         public int UnreadMessages
         {
@@ -53,6 +54,8 @@ namespace UnIRC.Shared.ViewModels
         }
         private int _unreadMessages;
 
+        public ICommand ReconnectCommand { get; set; }
+        public ICommand DisconnectCommand { get; set; }
 
         public ConnectionViewModel(Network network, Server server)
         {
