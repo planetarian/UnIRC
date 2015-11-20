@@ -11,10 +11,12 @@ namespace UnIRC.Shared.ViewModels
 #if WINDOWS_UWP
             Register<INavigationService>(() => new NavigationService());
 #endif
+            Register<MainViewModel>();
             Register<NetworksViewModel>();
         }
 
         public INavigationService NavigationService => GetInstance<INavigationService>();
+        public MainViewModel Main => GetInstance<MainViewModel>();
         public NetworksViewModel Networks => GetInstance<NetworksViewModel>();
     }
 

@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+#if WINDOWS_UWP
+using Windows.Storage;
+#endif
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
@@ -14,6 +17,10 @@ namespace UnIRC.ViewModels
     public class ViewModelBaseExtended : ViewModelBase
     {
         protected readonly object Lock = new object();
+#if WINDOWS_UWP
+        protected static readonly ApplicationDataContainer RoamingSettings
+            = ApplicationData.Current.RoamingSettings;
+#endif
 
         public string Title { get; protected set; }
 
@@ -29,7 +36,23 @@ namespace UnIRC.ViewModels
             Title = title;
         }
 
+        protected static void SaveRoamingSetting(string key, object value)
+        {
+#if WINDOWS_UWP
+            RoamingSettings.Values[key] = value;
+#else
+            throw new NotImplementedException();
+#endif
+        }
 
+        protected static object GetRoamingSetting(string key)
+        {
+#if WINDOWS_UWP
+            return RoamingSettings.Values[key];
+#else
+            throw new NotImplementedException();
+#endif
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected static void Send<T>(T message)
@@ -41,6 +64,12 @@ namespace UnIRC.ViewModels
         protected void Register<TMessage>(Action<TMessage> action)
         {
             Messenger.Default.Register(this, action);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void Register<TMessage>(bool receiveDerivedMessagesToo, Action<TMessage> action)
+        {
+            Messenger.Default.Register(this, receiveDerivedMessagesToo, action);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -81,7 +110,7 @@ namespace UnIRC.ViewModels
         }
 
 
-        #region GetCommand
+#region GetCommand
 
 
         // execute
@@ -160,6 +189,6 @@ namespace UnIRC.ViewModels
         }
 
 
-        #endregion GetCommand
+#endregion GetCommand
     }
 }

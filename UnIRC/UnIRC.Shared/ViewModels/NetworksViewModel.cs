@@ -9,9 +9,6 @@ using UnIRC.Models;
 using UnIRC.Shared.Helpers;
 using UnIRC.Shared.Messages;
 using UnIRC.ViewModels;
-#if WINDOWS_UWP
-using Windows.Storage;
-#endif
 
 namespace UnIRC.Shared.ViewModels
 {
@@ -201,20 +198,20 @@ namespace UnIRC.Shared.ViewModels
         public ICommand SaveNetworkCommand { get; set; }
         public ICommand CancelNetworkOperationCommand { get; set; }
         public ICommand DeleteNetworkCommand { get; set; }
+        public ICommand ConnectCommand { get; set; }
 
 
         public NetworksViewModel(INavigationService navigationService)
         {
             _navigationService = navigationService;
-#if WINDOWS_UWP
-            ApplicationDataContainer roamingSettings = ApplicationData.Current.RoamingSettings;
-#endif
 
             CreateNewNetworkCommand = GetCommand(CreateNewNetwork);
             EditNetworkCommand = GetCommand(EditNetwork, () => SelectedNetwork != null, () => SelectedNetwork);
             SaveNetworkCommand = GetCommand(SaveNetwork, () => !NewNetworkName.IsNullOrEmpty(), () => NewNetworkName);
             CancelNetworkOperationCommand = GetCommand(CancelNetworkOperation);
             DeleteNetworkCommand = GetCommand(DeleteSelectedNetwork, () => SelectedNetwork != null, () => SelectedNetwork);
+            ConnectCommand = GetCommand(
+                () => Send(new ConnectMessage(SelectedNetwork?.Network, SelectedNetwork?.SelectedServer?.Server)));
 
             Register<NetworksModifiedMessage>(SaveNetworks);
 
@@ -248,16 +245,15 @@ namespace UnIRC.Shared.ViewModels
                     SelectedNetwork.SelectedServer = SelectedNetwork.Servers?.FirstOrDefault();
                     SelectedNetwork.CancelServerOperationCommand.Execute();
                 });
-
-#if WINDOWS_UWP
-            var networksJson = roamingSettings.Values["Networks"] as string;
-            var selectedNetworkJson = roamingSettings.Values["SelectedNetwork"] as string;
-            var selectedServerJson = roamingSettings.Values["SelectedServer"] as string;
-            var globalFullName = roamingSettings.Values["GlobalFullName"] as string;
-            var globalEmailAddress = roamingSettings.Values["GlobalEmailAddress"] as string;
-            var globalNick = roamingSettings.Values["GlobalNick"] as string;
-            var globalBackupNick = roamingSettings.Values["GlobalBackupNick"] as string;
-            var enableInvisibleMode = roamingSettings.Values["EnableInvisibleMode"] as string;
+            
+            var networksJson = GetRoamingSetting("Networks") as string;
+            var selectedNetworkJson = GetRoamingSetting("SelectedNetwork") as string;
+            var selectedServerJson = GetRoamingSetting("SelectedServer") as string;
+            var globalFullName = GetRoamingSetting("GlobalFullName") as string;
+            var globalEmailAddress = GetRoamingSetting("GlobalEmailAddress") as string;
+            var globalNick = GetRoamingSetting("GlobalNick") as string;
+            var globalBackupNick = GetRoamingSetting("GlobalBackupNick") as string;
+            var enableInvisibleMode = GetRoamingSetting("EnableInvisibleMode") as string;
 
             FullName = GlobalFullName = globalFullName;
             EmailAddress = GlobalEmailAddress = globalEmailAddress;
@@ -283,71 +279,58 @@ namespace UnIRC.Shared.ViewModels
                     } // SelectedServer
                 } // SelectedNetwork
             } // Networks
-#endif
+
             //
             // Save state on modifications
             //
-
-#if WINDOWS_UWP
+            
             this.OnChanged(x => x.EnableInvisibleMode)
-                .Do(() => roamingSettings.Values["EnableInvisibleMode"] = EnableInvisibleMode ? "true" : "false");
+                .Do(() => SaveRoamingSetting("EnableInvisibleMode", EnableInvisibleMode ? "true" : "false"));
             this.OnChanged(x => x.SelectedNetwork)
                 .Do(() =>
                 {
-                    roamingSettings.Values["SelectedNetwork"] = SelectedNetwork != null
+                    SaveRoamingSetting("SelectedNetwork", SelectedNetwork != null
                         ? JsonConvert.SerializeObject(SelectedNetwork.Network)
-                        : null;
+                        : null);
                 });
-#endif
             // Save nicks when they change
             this.OnChanged(x => x.FullName)
                 .Do(() =>
                 {
                     if (UseNetworkNick || FullName == GlobalFullName) return;
                     GlobalFullName = FullName;
-#if WINDOWS_UWP
-                    roamingSettings.Values["GlobalFullName"] = GlobalFullName;
-#endif
+                    SaveRoamingSetting("GlobalFullName", GlobalFullName);
                 });
             this.OnChanged(x => x.EmailAddress)
                 .Do(() =>
                 {
                     if (UseNetworkNick || EmailAddress == GlobalEmailAddress) return;
                     GlobalEmailAddress = EmailAddress;
-#if WINDOWS_UWP
-                    roamingSettings.Values["GlobalEmailAddress"] = GlobalEmailAddress;
-#endif
+                    SaveRoamingSetting("GlobalEmailAddress", GlobalEmailAddress);
                 });
             this.OnChanged(x => x.Nick)
                 .Do(() =>
                 {
                     if (UseNetworkNick || Nick == GlobalNick) return;
                     GlobalNick = Nick;
-#if WINDOWS_UWP
-                    roamingSettings.Values["GlobalNick"] = GlobalNick;
-#endif
+                    SaveRoamingSetting("GlobalNick", GlobalNick);
                 });
             this.OnChanged(x => x.BackupNick)
                 .Do(() =>
                 {
                     if (UseNetworkNick || BackupNick == GlobalBackupNick) return;
                     GlobalBackupNick = BackupNick;
-#if WINDOWS_UWP
-                    roamingSettings.Values["GlobalBackupNick"] = GlobalBackupNick;
-#endif
+                    SaveRoamingSetting("GlobalBackupNick", GlobalBackupNick);
                 });
         }
 
         private void SaveNetworks(NetworksModifiedMessage m)
         {
-#if WINDOWS_UWP
-            ApplicationDataContainer roamingSettings = ApplicationData.Current.RoamingSettings;
             List<Network> networks = Networks?.Select(n => n.Network).ToList();
-            roamingSettings.Values["Networks"] = Networks != null ? JsonConvert.SerializeObject(networks) : null;
-            roamingSettings.Values["SelectedServer"] = SelectedNetwork?.SelectedServer?.Server != null
+            SaveRoamingSetting("Networks", Networks != null ? JsonConvert.SerializeObject(networks) : null);
+            SaveRoamingSetting("SelectedServer", SelectedNetwork?.SelectedServer?.Server != null
                 ? JsonConvert.SerializeObject(SelectedNetwork.SelectedServer.Server)
-                : null;
-#endif
+                : null);
         }
 
         // Network CRUD:

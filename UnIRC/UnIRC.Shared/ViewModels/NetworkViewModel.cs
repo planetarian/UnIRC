@@ -3,9 +3,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
-#if WINDOWS_UWP
-using Windows.Storage;
-#endif
 using Newtonsoft.Json;
 using UnIRC.Models;
 using UnIRC.Shared.Helpers;
@@ -169,6 +166,7 @@ namespace UnIRC.Shared.ViewModels
 
         public ICommand AddPortRangeCommand { get; set; }
         public ICommand DeleteSelectedPortRangeCommand { get; set; }
+        
 
 
         public NetworkViewModel() : this(new Network())
@@ -177,14 +175,13 @@ namespace UnIRC.Shared.ViewModels
 
         public NetworkViewModel(Network network)
         {
-#if WINDOWS_UWP
-            ApplicationDataContainer roamingSettings = ApplicationData.Current.RoamingSettings;
-#endif
             Network = network;
             Name = network.Name;
             Servers = network.Servers?.Select(s => new ServerViewModel(s)).ToObservable()
                       ?? new ObservableCollection<ServerViewModel>();
             UseNetworkNick = network.UseNetworkNick;
+            FullName = network.FullName;
+            EmailAddress = network.EmailAddress;
             Nick = network.Nick;
             BackupNick = network.BackupNick;
 
@@ -202,18 +199,17 @@ namespace UnIRC.Shared.ViewModels
             
             this.OnChanged(x => x.Name).Do(() => Network.Name = Name);
             this.OnChanged(x => x.Servers).Do(() => Network.Servers = Servers?.Select(s => s.Server).ToList());
-            this.OnChanged(x => x.SelectedServer, x => x.SelectedPortRange)
-#if WINDOWS_UWP
+            this.OnChanged(x => x.SelectedServer)
                 .Do(() =>
                 {
-                    roamingSettings.Values["SelectedServer"] = SelectedServer != null
+                    SaveRoamingSetting("SelectedServer", SelectedServer != null
                         ? JsonConvert.SerializeObject(SelectedServer.Server)
-                        : null;
-                })
-#endif
-                .Do(() => Send(new NetworksModifiedMessage()));
+                        : null);
+                });
 
             this.OnChanged(x => x.UseNetworkNick).Do(() => Network.UseNetworkNick = UseNetworkNick);
+            this.OnChanged(x => x.FullName).Do(() => Network.FullName = FullName);
+            this.OnChanged(x => x.EmailAddress).Do(() => Network.EmailAddress = EmailAddress);
             this.OnChanged(x => x.Nick).Do(() => Network.Nick = Nick);
             this.OnChanged(x => x.BackupNick).Do(() => Network.BackupNick = BackupNick);
         }
