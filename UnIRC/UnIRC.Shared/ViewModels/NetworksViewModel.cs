@@ -218,7 +218,7 @@ namespace UnIRC.Shared.ViewModels
             this.OnChanged(x => x.IsDeletingNetwork, x => x.NewNetworkUseNetworkNick)
                 .Do(() => CanEditNewNetworkNick = !IsDeletingNetwork && NewNetworkUseNetworkNick);
             // Switch nicks when we decide whether to use server nick
-            this.OnChanged(x => x.UseNetworkNick)
+            this.OnChanged(x => x.UseNetworkNick, x => x.SelectedNetwork)
                 .Do(() =>
                 {
                     if (IsNetworkNickAvailable && UseNetworkNick)
@@ -266,12 +266,12 @@ namespace UnIRC.Shared.ViewModels
                 var networks = JsonConvert.DeserializeObject<List<Network>>(networksJson);
                 Networks = networks.Select(n => new NetworkViewModel(n)).ToObservable();
 
-                if (selectedNetworkJson != null)
+                if (Networks != null && selectedNetworkJson != null)
                 {
                     var selectedNetwork = JsonConvert.DeserializeObject<Network>(selectedNetworkJson);
                     SelectedNetwork = Networks.FirstOrDefault(n => n.Network?.Name == selectedNetwork.Name);
 
-                    if (selectedServerJson != null)
+                    if (SelectedNetwork != null && selectedServerJson != null)
                     {
                         var selectedServer = JsonConvert.DeserializeObject<Server>(selectedServerJson);
                         SelectedNetwork.SelectedServer = SelectedNetwork.Servers
@@ -355,7 +355,7 @@ namespace UnIRC.Shared.ViewModels
                 Networks.Remove(SelectedNetwork);
                 SelectedNetwork = null;
                 // ReSharper disable once ExplicitCallerInfoArgument
-                RaisePropertyChanged(nameof(Networks));
+                //RaisePropertyChanged(nameof(Networks));
                 IsDeletingNetwork = false;
             }
             else if (IsEditingNetwork)
@@ -367,7 +367,7 @@ namespace UnIRC.Shared.ViewModels
                     editedNetwork = new NetworkViewModel();
                     Networks.Add(editedNetwork);
                     // ReSharper disable once ExplicitCallerInfoArgument
-                    RaisePropertyChanged(nameof(Networks));
+                    //RaisePropertyChanged(nameof(Networks));
                 }
                 ApplyNewNetworkProperties(editedNetwork);
                 SelectedNetwork = editedNetwork;

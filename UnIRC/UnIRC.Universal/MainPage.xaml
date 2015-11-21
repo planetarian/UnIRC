@@ -106,7 +106,10 @@
                         Style="{StaticResource FixedMenuStyle}"
                         Grid.Row="1"/>
                     <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-                        <ListBox x:Name="ConnectionsMenu" ItemsSource="{Binding Connections}" SelectionChanged="MenuSelectionChanged">
+                        <ListBox
+                            x:Name="ConnectionsMenu"
+                            ItemsSource="{Binding Connections}"
+                            SelectionChanged="MenuSelectionChanged">
                             <ListBox.ItemTemplate>
                                 <DataTemplate x:DataType="viewModels:ConnectionViewModel">
                                     <Grid>

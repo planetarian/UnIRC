@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using Windows.Foundation;
+using Windows.Foundation.Collections;
 using Windows.UI.ViewManagement;
 using UnIRC.Models;
 using Windows.UI.Xaml.Controls;
+using UnIRC.Shared.ViewModels;
 using UnIRC.Views;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
@@ -27,12 +30,27 @@ namespace UnIRC
         private readonly ListBox[] _allMenus;
         private readonly ListBox[] _fixedMenus;
 
+        private readonly List<Page> _connectionPages = new List<Page>();
+
         public MainPage()
         {
             InitializeComponent();
             ApplicationView.GetForCurrentView().SetPreferredMinSize(new Size(340, 530));
             _allMenus = new[] {UpperFixedMenu, ConnectionsMenu, LowerFixedMenu};
             _fixedMenus = new[] {UpperFixedMenu, LowerFixedMenu};
+            if (ConnectionsMenu.Items != null)
+                ConnectionsMenu.Items.VectorChanged += ConnectionsChanged;
+        }
+
+        private void ConnectionsChanged(IObservableVector<object> sender, IVectorChangedEventArgs ev)
+        {
+            if (ev.CollectionChange == CollectionChange.ItemInserted)
+            {
+                var index = (int)ev.Index;
+                object changedElement = sender[index];
+
+
+            }
         }
 
         private void MenuSelectionChanged(object sender, SelectionChangedEventArgs e)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
@@ -70,7 +71,7 @@ namespace UnIRC.Shared.ViewModels
         public ObservableCollection<PortRange> NewServerPorts
         {
             get { return _newServerPorts; }
-            set { Set(ref _newServerPorts, value); }
+            private set { Set(ref _newServerPorts, value); }
         }
         private ObservableCollection<PortRange> _newServerPorts
             = new ObservableCollection<PortRange>();
@@ -198,7 +199,6 @@ namespace UnIRC.Shared.ViewModels
                 () => SelectedPortRange);
             
             this.OnChanged(x => x.Name).Do(() => Network.Name = Name);
-            this.OnChanged(x => x.Servers).Do(() => Network.Servers = Servers?.Select(s => s.Server).ToList());
             this.OnChanged(x => x.SelectedServer)
                 .Do(() =>
                 {
@@ -212,6 +212,10 @@ namespace UnIRC.Shared.ViewModels
             this.OnChanged(x => x.EmailAddress).Do(() => Network.EmailAddress = EmailAddress);
             this.OnChanged(x => x.Nick).Do(() => Network.Nick = Nick);
             this.OnChanged(x => x.BackupNick).Do(() => Network.BackupNick = BackupNick);
+            // ReSharper disable once ExplicitCallerInfoArgument
+            this.OnCollectionChanged(x => x.NewServerPorts).Do(() => RaisePropertyChanged(nameof(NewServerPorts)));
+
+            Servers.CollectionChanged += (o, a) => Network.Servers = Servers?.Select(s => s.Server).ToList();
         }
 
 
@@ -236,8 +240,6 @@ namespace UnIRC.Shared.ViewModels
             {
                 Servers.Remove(SelectedServer);
                 SelectedServer = null;
-                // ReSharper disable once ExplicitCallerInfoArgument
-                RaisePropertyChanged(nameof(Servers));
                 IsDeletingServer = false;
             }
             else if (IsEditingServer)
@@ -248,8 +250,6 @@ namespace UnIRC.Shared.ViewModels
                 {
                     editedServer = new ServerViewModel();
                     Servers.Add(editedServer);
-                    // ReSharper disable once ExplicitCallerInfoArgument
-                    RaisePropertyChanged(nameof(Servers));
                 }
                 ApplyNewServerProperties(editedServer);
                 SelectedServer = editedServer;
@@ -352,8 +352,6 @@ namespace UnIRC.Shared.ViewModels
                 NewServerPorts.Add(new PortRange(start, end));
             }
             NewServerPortRange = "";
-            // ReSharper disable once ExplicitCallerInfoArgument
-            RaisePropertyChanged(nameof(NewServerPorts));
         }
 
         private void DeleteSelectedPortRange()

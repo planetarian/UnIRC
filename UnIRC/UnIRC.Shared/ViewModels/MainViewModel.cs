@@ -66,10 +66,6 @@ namespace UnIRC.Shared.ViewModels
         public MainViewModel(INavigationService navigationService)
         {
             _navigationService = navigationService;
-            // ReSharper disable once ExplicitCallerInfoArgument
-            //Errors.CollectionChanged += (s, a) => RaisePropertyChanged(nameof(Errors));
-            // ReSharper disable once ExplicitCallerInfoArgument
-            //Messages.CollectionChanged += (s, a) => RaisePropertyChanged(nameof(Messages));
 
             Register<ErrorMessage>(m => Errors.Add(m));
             Register<Message>(true, m => Messages.Add(m));

@@ -46,16 +46,46 @@ namespace UnIRC.Shared.Helpers
 
         private void SourcePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (IsPropertyValid(e.PropertyName))
+            if (!IsPropertyValid(e.PropertyName))
+                return;
+
+            _onChangeWithParameter.ForEach(o => o(sender as TSource));
+            _onChange.ForEach(o => o());
+            _onChangeAsyncWithParameter.ForEach(o => Task.Run(() => o(sender as TSource)));
+            _onChangeAsync.ForEach(o => Task.Run(o));
+            _onChangeOnUIWithParameter.ForEach(
+                o => DispatcherHelper.CheckBeginInvokeOnUI(() => o(sender as TSource)));
+            _onChangeOnUI.ForEach(DispatcherHelper.CheckBeginInvokeOnUI);
+        }
+
+        private bool IsPropertyValid(string propertyName)
+        {
+            foreach (Expression<Func<TSource, object>> expr in _propertyExpressions)
             {
-                _onChangeWithParameter.ForEach(o => o(sender as TSource));
-                _onChange.ForEach(o => o());
-                _onChangeAsyncWithParameter.ForEach(o => Task.Run(() => o(sender as TSource)));
-                _onChangeAsync.ForEach(o => Task.Run(o));
-                _onChangeOnUIWithParameter.ForEach(
-                    o => DispatcherHelper.CheckBeginInvokeOnUI(() => o(sender as TSource)));
-                _onChangeOnUI.ForEach(DispatcherHelper.CheckBeginInvokeOnUI);
+                PropertyInfo propertyInfo = null;
+                var mExpr = expr.Body as MemberExpression;
+                if (mExpr != null)
+                {
+                    propertyInfo = mExpr.Member as PropertyInfo;
+                }
+                else
+                {
+                    var uExpr = expr.Body as UnaryExpression;
+                    if (uExpr != null)
+                    {
+                        mExpr = uExpr.Operand as MemberExpression;
+                        if (mExpr != null)
+                            propertyInfo = mExpr.Member as PropertyInfo;
+                    }
+                }
+
+                if (propertyInfo == null)
+                    throw new ArgumentException("The lambda expression 'property' should point to a valid Property");
+                if (propertyInfo.Name == propertyName)
+                    return true;
             }
+
+            return false;
         }
 
         /// <summary>
@@ -100,22 +130,24 @@ namespace UnIRC.Shared.Helpers
         /// Executes the action only once and automatically unregisters
         /// </summary>
         /// <param name="onChanged">The action to be executed</param>
-        public void DoOnce(Action<TSource> onChanged)
+        public PropertyChangedSubscriber<TSource> DoOnce(Action<TSource> onChanged)
         {
             //Action<TSource> dispose = x => Dispose();
             Action<TSource> remove = x => RemoveAction(onChanged);
             _onChangeWithParameter.Add((Action<TSource>)Delegate.Combine(onChanged, remove));
+            return this;
         }
 
         /// <summary>co
         /// Executes the action only once and automatically unregisters
         /// </summary>
         /// <param name="onChanged">The action to be executed</param>
-        public void DoOnce(Action onChanged)
+        public PropertyChangedSubscriber<TSource> DoOnce(Action onChanged)
         {
             //Action<TSource> dispose = x => Dispose();
             Action<TSource> remove = x => RemoveAction(onChanged);
             _onChange.Add((Action)Delegate.Combine(onChanged, remove));
+            return this;
         }
 
         private void RemoveAction(Action<TSource> onChanged)
@@ -139,36 +171,6 @@ namespace UnIRC.Shared.Helpers
             if (_onChangeWithParameter.Count + _onChangeAsyncWithParameter.Count + _onChangeOnUIWithParameter.Count +
                 _onChange.Count + _onChangeAsync.Count + _onChangeOnUI.Count == 0)
                 Dispose();
-        }
-
-        private bool IsPropertyValid(string propertyName)
-        {
-            foreach (Expression<Func<TSource, object>> expr in _propertyExpressions)
-            {
-                PropertyInfo propertyInfo = null;
-                var mExpr = expr.Body as MemberExpression;
-                if (mExpr != null)
-                {
-                    propertyInfo = mExpr.Member as PropertyInfo;
-                }
-                else
-                {
-                    var uExpr = expr.Body as UnaryExpression;
-                    if (uExpr != null)
-                    {
-                        mExpr = uExpr.Operand as MemberExpression;
-                        if (mExpr != null)
-                            propertyInfo = mExpr.Member as PropertyInfo;
-                    }
-                }
-
-                if (propertyInfo == null)
-                    throw new ArgumentException("The lambda expression 'property' should point to a valid Property");
-                if (propertyInfo.Name == propertyName)
-                    return true;
-            }
-
-            return false;
         }
 
         #region Implementation of IDisposable
