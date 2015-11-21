@@ -13,6 +13,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\CollectionChangedSubscriber.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Messages\ConnectMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Messages\NetworksModifiedMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\DirectServerConnection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\DirectServerConnectionEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\IConnectionEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Menu.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\MenuItem.cs" />
@@ -37,6 +39,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\Network.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\PortRange.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Server.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\UserInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\ConnectionViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\MainViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\NetworksViewModel.cs" />

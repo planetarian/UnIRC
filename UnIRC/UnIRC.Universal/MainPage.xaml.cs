@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -10,14 +9,9 @@ using Windows.UI.Xaml.Controls;
 using UnIRC.Shared.ViewModels;
 using UnIRC.Views;
 
-// The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
-
 namespace UnIRC
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
-    public sealed partial class MainPage : Page
+    public sealed partial class MainPage
     {
         private readonly Dictionary<string, Type> _views
             = new Dictionary<string, Type>
@@ -45,23 +39,27 @@ namespace UnIRC
         private void ConnectionsChanged(IObservableVector<object> sender, IVectorChangedEventArgs ev)
         {
             var index = (int)ev.Index;
-            if (ev.CollectionChange == CollectionChange.ItemInserted)
+            switch (ev.CollectionChange)
             {
-                object changedElement = sender[index];
-                var vm = changedElement as ConnectionViewModel;
-                if (vm != null)
-                    _connectionPages.Add(new ConnectionView {DataContext = vm});
-            }
-            else if (ev.CollectionChange == CollectionChange.ItemRemoved)
-            {
-                _connectionPages.RemoveAt(index);
-            }
+                case CollectionChange.ItemInserted:
+                    object changedElement = sender[index];
+                    var vm = changedElement as ConnectionViewModel;
+                    if (vm == null) return;
 
+                    var view = new ConnectionView {DataContext = vm};
+                    _connectionPages.Add(view);
+                    // Open the new connection view
+                    ConnectionsMenu.SelectedItem = vm;
+                    break;
+                case CollectionChange.ItemRemoved:
+                    _connectionPages.RemoveAt(index);
+                    break;
+            }
         }
 
         private void MenuSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var list = (ListBox)sender;
+            var list = (ListBox) sender;
             if (list.SelectedIndex == -1)
                 return;
 

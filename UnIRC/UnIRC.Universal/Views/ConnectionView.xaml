@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewModels="using:UnIRC.Shared.ViewModels"
+    xmlns:system="using:System"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance viewModels:ConnectionViewModel}">
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
@@ -16,12 +17,65 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <TextBlock Text="{Binding DisplayName}" Margin="10" Grid.Row="0"/>
             <TextBlock Text="{Binding Server.DisplayName}" Margin="10" Grid.Row="1"/>
-            <TextBlock Text="{Binding IsConnected}" Margin="10" Grid.Row="2"/>
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{Binding IsConnected}" Margin="10"/>
+                <Button
+                    Content="Reconnect" Command="{Binding ReconnectCommand}"
+                    Visibility="{Binding IsConnected, Converter={StaticResource IsFalseVisibilityConverter}}"
+                    Grid.Column="1"/>
+                <Button
+                    Content="Disconnect" Command="{Binding DisconnectCommand}"
+                    Visibility="{Binding IsConnected, Converter={StaticResource IsTrueVisibilityConverter}}"
+                    Grid.Column="1"/>
+            </Grid>
             <TextBlock Text="{Binding UnreadMessages}" Margin="10" Grid.Row="3"/>
+
+            <ListBox
+                ItemsSource="{Binding MessagesReceived}"
+                Grid.Row="4">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="2"/>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="system:String">
+                        <TextBlock Text="{Binding}" TextWrapping="Wrap"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <Grid Grid.Row="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox
+                    Text="{Binding InputMessage, Mode=TwoWay,
+                    UpdateSourceTrigger=PropertyChanged}"
+                    InputScope="Chat"
+                    PlaceholderText="Message" TextWrapping="Wrap"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                    KeyUp="MessageBoxKeyUp" KeyDown="MessageBoxKeyDown"
+                    Grid.Column="0"/>
+                <Button
+                    Style="{StaticResource IconButtonStyle}"
+                    Command="{Binding SendMessageCommand}"
+                    Content="&#xE725;" Grid.Column="1"
+                    Background="Gray"
+                    Margin="0" Padding="0"
+                    Width="36"
+                    VerticalAlignment="Stretch"/>
+            </Grid>
 
         </Grid>
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using UnIRC.Shared.Helpers;
 
@@ -25,5 +26,10 @@ namespace UnIRC.Models
         {
             return $@"{(useSsl ? "+" : "")}{address}:{String.Join(",", ports)}";
         }
+
+        public IEnumerable<int> AllPorts => Ports
+            .SelectMany(p => p.Ports)
+            .Distinct()
+            .OrderBy(p => p);
     }
 }

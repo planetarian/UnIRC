@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using UnIRC.Models;
 using UnIRC.Shared.Helpers;
 using UnIRC.Shared.Messages;
+using UnIRC.Shared.Models;
 using UnIRC.ViewModels;
 
 namespace UnIRC.Shared.ViewModels
@@ -181,10 +182,12 @@ namespace UnIRC.Shared.ViewModels
             Servers = network.Servers?.Select(s => new ServerViewModel(s)).ToObservable()
                       ?? new ObservableCollection<ServerViewModel>();
             UseNetworkNick = network.UseNetworkNick;
-            FullName = network.FullName;
-            EmailAddress = network.EmailAddress;
-            Nick = network.Nick;
-            BackupNick = network.BackupNick;
+            if (network.UserInfo == null)
+                network.UserInfo = new UserInfo();
+            FullName = network.UserInfo.FullName;
+            EmailAddress = network.UserInfo.EmailAddress;
+            Nick = network.UserInfo.Nick;
+            BackupNick = network.UserInfo.BackupNick;
 
             CreateNewServerCommand = GetCommand(CreateNewServer);
             EditServerCommand = GetCommand(EditServer, () => SelectedServer != null, () => SelectedServer);
@@ -208,10 +211,10 @@ namespace UnIRC.Shared.ViewModels
                 });
 
             this.OnChanged(x => x.UseNetworkNick).Do(() => Network.UseNetworkNick = UseNetworkNick);
-            this.OnChanged(x => x.FullName).Do(() => Network.FullName = FullName);
-            this.OnChanged(x => x.EmailAddress).Do(() => Network.EmailAddress = EmailAddress);
-            this.OnChanged(x => x.Nick).Do(() => Network.Nick = Nick);
-            this.OnChanged(x => x.BackupNick).Do(() => Network.BackupNick = BackupNick);
+            this.OnChanged(x => x.FullName).Do(() => Network.UserInfo.FullName = FullName);
+            this.OnChanged(x => x.EmailAddress).Do(() => Network.UserInfo.EmailAddress = EmailAddress);
+            this.OnChanged(x => x.Nick).Do(() => Network.UserInfo.Nick = Nick);
+            this.OnChanged(x => x.BackupNick).Do(() => Network.UserInfo.BackupNick = BackupNick);
             // ReSharper disable once ExplicitCallerInfoArgument
             this.OnCollectionChanged(x => x.NewServerPorts).Do(() => RaisePropertyChanged(nameof(NewServerPorts)));
 

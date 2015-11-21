@@ -8,15 +8,12 @@
     mc:Ignorable="d"
     DataContext="{Binding Networks, Source={StaticResource Locator}}">
     <Page.Resources>
-        <Style TargetType="Button" x:Key="IconButton">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
-            <Setter Property="Margin" Value="5"/>
-        </Style>
         <SolidColorBrush x:Key="WarningBackground" Color="#111"/>
         <SolidColorBrush x:Key="WarningForeground" Color="Red"/>
     </Page.Resources>
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Padding="10">
+    <ScrollViewer
+        Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+        VerticalScrollBarVisibility="Auto" Padding="10">
         <Grid Width="310" HorizontalAlignment="Left">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -53,10 +50,10 @@
                         Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         Margin="0,2,10,0" HorizontalAlignment="Stretch" />
                     <Button
-                        Style="{StaticResource IconButton}" Grid.Column="1"
+                        Style="{StaticResource IconButtonStyle}" Grid.Column="1"
                         Command="{Binding CreateNewNetworkCommand}" Content="&#xE710;" />
                     <Button
-                        Style="{StaticResource IconButton}" Grid.Column="2"
+                        Style="{StaticResource IconButtonStyle}" Grid.Column="2"
                         Command="{Binding EditNetworkCommand}" Content="&#xE70F;" />
                 </Grid>
                 <!-- Network Editor -->
@@ -148,16 +145,16 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Button Style="{StaticResource IconButton}" Content="&#xE10B;" Command="{Binding SaveNetworkCommand}"/>
+                        <Button Style="{StaticResource IconButtonStyle}" Content="&#xE10B;" Command="{Binding SaveNetworkCommand}"/>
                         <Grid Visibility="{Binding IsDeletingNetwork, Converter={StaticResource IsTrueVisibilityConverter}}" Grid.Column="1">
                             <Grid Background="{StaticResource WarningBackground}"/>
                             <TextBlock Text="Delete network?" Foreground="{StaticResource WarningForeground}" Margin="16,8" FontWeight="SemiBold"/>
                         </Grid>
                         <Button
-                            Style="{StaticResource IconButton}" Content="&#xE74D;" Command="{Binding DeleteNetworkCommand}"
+                            Style="{StaticResource IconButtonStyle}" Content="&#xE74D;" Command="{Binding DeleteNetworkCommand}"
                             IsEnabled="{Binding IsAddingNewNetwork, Converter={StaticResource NegateConverter}}"
                             Visibility="{Binding IsDeletingNetwork, Converter={StaticResource IsFalseVisibilityConverter}}" Grid.Column="2"/>
-                        <Button Style="{StaticResource IconButton}" Content="&#xE711;" Command="{Binding CancelNetworkOperationCommand}" Grid.Column="3"/>
+                        <Button Style="{StaticResource IconButtonStyle}" Content="&#xE711;" Command="{Binding CancelNetworkOperationCommand}" Grid.Column="3"/>
                     </Grid>
                 </Grid>
             </Grid>
@@ -191,10 +188,10 @@
                             Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             HorizontalAlignment="Stretch" Margin="0,2,10,0"/>
                         <Button
-                            Style="{StaticResource IconButton}" Grid.Column="1" VerticalAlignment="Center"
+                            Style="{StaticResource IconButtonStyle}" Grid.Column="1" VerticalAlignment="Center"
                             Command="{Binding CreateNewServerCommand}" Content="&#xE710;" />
                         <Button
-                            Style="{StaticResource IconButton}" Grid.Column="2" VerticalAlignment="Center"
+                            Style="{StaticResource IconButtonStyle}" Grid.Column="2" VerticalAlignment="Center"
                             Command="{Binding EditServerCommand}" Content="&#xE70F;" />
                     </Grid>
                     <!-- Server Editor -->
@@ -253,7 +250,7 @@
                                 IsEnabled="{Binding IsDeletingServer, Converter={StaticResource NegateConverter}}" Grid.Column="1" InputScope="FormulaNumber"
                                 />
                             <Button
-                                Style="{StaticResource IconButton}" Content="&#xE710;" Command="{Binding AddPortRangeCommand}"
+                                Style="{StaticResource IconButtonStyle}" Content="&#xE710;" Command="{Binding AddPortRangeCommand}"
                                 IsEnabled="{Binding IsDeletingServer, Converter={StaticResource NegateConverter}}" Grid.Column="2"/>
                         </Grid>
                         <!-- Ports [Ports ..] [T] -->
@@ -269,7 +266,7 @@
                                 SelectedItem="{Binding SelectedPortRange, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 IsEnabled="{Binding IsDeletingServer, Converter={StaticResource NegateConverter}}"/>
                             <Button
-                                Style="{StaticResource IconButton}" VerticalAlignment="Top" Grid.Column="2"
+                                Style="{StaticResource IconButtonStyle}" VerticalAlignment="Top" Grid.Column="2"
                                 Content="&#xE74D;" Command="{Binding DeleteSelectedPortRangeCommand}"
                                 IsEnabled="{Binding IsDeletingServer, Converter={StaticResource NegateConverter}}"/>
                         </Grid>
@@ -293,19 +290,19 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <Button
-                                Style="{StaticResource IconButton}"
+                                Style="{StaticResource IconButtonStyle}"
                                 Content="&#xE10B;" Command="{Binding SaveServerCommand}" />
                             <Grid Visibility="{Binding IsDeletingServer, Converter={StaticResource IsTrueVisibilityConverter}}" Grid.Column="1">
                                 <Grid Background="{StaticResource WarningBackground}"/>
                                 <TextBlock Text="Delete server?" Foreground="{StaticResource WarningForeground}" Margin="16,8" FontWeight="SemiBold"/>
                             </Grid>
                             <Button
-                                Style="{StaticResource IconButton}" Grid.Column="2"
+                                Style="{StaticResource IconButtonStyle}" Grid.Column="2"
                                 Content="&#xE74D;" Command="{Binding DeleteServerCommand}"
                                 IsEnabled="{Binding IsAddingNewServer, Converter={StaticResource NegateConverter}}"
                                 Visibility="{Binding IsDeletingServer, Converter={StaticResource IsFalseVisibilityConverter}}"/>
                             <Button
-                                Style="{StaticResource IconButton}" Grid.Column="3"
+                                Style="{StaticResource IconButtonStyle}" Grid.Column="3"
                                 Content="&#xE711;" Command="{Binding CancelServerOperationCommand}" />
                         </Grid>
                     </Grid>
@@ -386,5 +383,5 @@
             </Grid>
 
         </Grid>
-    </Grid>
+    </ScrollViewer>
 </Page>

@@ -8,11 +8,18 @@
     <Application.Resources>
         <ResourceDictionary>
             <viewModels:ViewModelLocator x:Key="Locator"/>
+            
             <converters:NegateConverter x:Key="NegateConverter"/>
             <converters:IsNullVisibilityConverter x:Key="IsNullVisibilityConverter"/>
             <converters:IsNotNullVisibilityConverter x:Key="IsNotNullVisibilityConverter"/>
             <converters:IsTrueVisibilityConverter x:Key="IsTrueVisibilityConverter"/>
             <converters:IsFalseVisibilityConverter x:Key="IsFalseVisibilityConverter"/>
+            
+            <Style x:Key="IconButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+                <Setter Property="Margin" Value="5"/>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

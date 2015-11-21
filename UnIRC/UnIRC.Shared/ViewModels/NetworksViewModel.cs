@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using UnIRC.Models;
 using UnIRC.Shared.Helpers;
 using UnIRC.Shared.Messages;
+using UnIRC.Shared.Models;
 using UnIRC.ViewModels;
 
 namespace UnIRC.Shared.ViewModels
@@ -211,7 +212,20 @@ namespace UnIRC.Shared.ViewModels
             CancelNetworkOperationCommand = GetCommand(CancelNetworkOperation);
             DeleteNetworkCommand = GetCommand(DeleteSelectedNetwork, () => SelectedNetwork != null, () => SelectedNetwork);
             ConnectCommand = GetCommand(
-                () => Send(new ConnectMessage(SelectedNetwork?.Network, SelectedNetwork?.SelectedServer?.Server)));
+                () =>
+                {
+                    var userInfo = new UserInfo
+                    {
+                        FullName = FullName,
+                        EmailAddress = EmailAddress,
+                        Nick = Nick,
+                        BackupNick = BackupNick
+                    };
+                    Send(new ConnectMessage(
+                        SelectedNetwork?.Network,
+                        SelectedNetwork?.SelectedServer?.Server,
+                        userInfo));
+                });
 
             Register<NetworksModifiedMessage>(SaveNetworks);
 
@@ -221,7 +235,7 @@ namespace UnIRC.Shared.ViewModels
             this.OnChanged(x => x.UseNetworkNick, x => x.SelectedNetwork)
                 .Do(() =>
                 {
-                    if (IsNetworkNickAvailable && UseNetworkNick)
+                    if (SelectedNetwork != null && IsNetworkNickAvailable && UseNetworkNick)
                     {
                         FullName = SelectedNetwork.FullName;
                         EmailAddress = SelectedNetwork.EmailAddress;

@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Text;
+﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
 using GalaSoft.MvvmLight.Views;
 using UnIRC.Models;
 using UnIRC.Shared.Messages;
+using UnIRC.Shared.Models;
 using UnIRC.ViewModels;
 
 namespace UnIRC.Shared.ViewModels
@@ -60,6 +58,8 @@ namespace UnIRC.Shared.ViewModels
         }
         private ObservableCollection<Message> _messages
             = new ObservableCollection<Message>();
+
+        public IConnectionEndpoint _directServerEndpoint = new DirectServerConnectionEndpoint();
         
         public ICommand ClearErrorsCommand { get; set; }
 
@@ -74,7 +74,8 @@ namespace UnIRC.Shared.ViewModels
 
         private void AddConnection(ConnectMessage m)
         {
-            var connection = new ConnectionViewModel(m.Network, m.Server);
+            var connection = new ConnectionViewModel(
+                m.Network, m.Server, m.UserInfo, _directServerEndpoint);
             Connections.Add(connection);
         }
     }

@@ -85,7 +85,7 @@
         <SplitView
             x:Name="NavigationSplitView"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-            DisplayMode="Overlay" CompactPaneLength="40">
+            DisplayMode="Overlay" CompactPaneLength="40" OpenPaneLength="200">
             <SplitView.Pane>
                 <Grid>
                     <Grid.RowDefinitions>
@@ -122,7 +122,8 @@
                                             Visibility="{Binding IsConnected, Converter={StaticResource IsTrueVisibilityConverter}}"/>
                                         <TextBlock
                                             Text="&#xE17A;" Style="{StaticResource GlyphStyle}" Grid.Column="0"
-                                            Visibility="{Binding IsConnected, Converter={StaticResource IsFalseVisibilityConverter}}"/>
+                                            Visibility="{Binding IsConnected, Converter={StaticResource IsFalseVisibilityConverter}}"
+                                            Foreground="Red" FontWeight="Black"/>
                                         <TextBlock Text="{Binding DisplayName}" Style="{StaticResource MenuItemStyle}" Grid.Column="1"/>
                                     </Grid>
                                 </DataTemplate>
@@ -152,9 +153,7 @@
                         </Button>
                         <TextBlock Text="UnIRC" Margin="16,8,0,0" />
                     </StackPanel>
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                        <Frame x:Name="ContentFrame"/>
-                    </ScrollViewer>
+                    <Frame x:Name="ContentFrame" Grid.Row="1" />
                 </Grid>
             </SplitView.Content>
         </SplitView>
