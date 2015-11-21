@@ -44,13 +44,19 @@ namespace UnIRC
 
         private void ConnectionsChanged(IObservableVector<object> sender, IVectorChangedEventArgs ev)
         {
+            var index = (int)ev.Index;
             if (ev.CollectionChange == CollectionChange.ItemInserted)
             {
-                var index = (int)ev.Index;
                 object changedElement = sender[index];
-
-
+                var vm = changedElement as ConnectionViewModel;
+                if (vm != null)
+                    _connectionPages.Add(new ConnectionView {DataContext = vm});
             }
+            else if (ev.CollectionChange == CollectionChange.ItemRemoved)
+            {
+                _connectionPages.RemoveAt(index);
+            }
+
         }
 
         private void MenuSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -62,7 +68,13 @@ namespace UnIRC
             foreach (ListBox listBox in _allMenus.Where(listBox => listBox != list))
                 listBox.SelectedItem = null;
 
-            if (_fixedMenus.Contains(list))
+            if (list == ConnectionsMenu)
+            {
+                int index = ConnectionsMenu.SelectedIndex;
+                if (_connectionPages.Count > index)
+                    ContentFrame.Content = _connectionPages[index];
+            }
+            else if (_fixedMenus.Contains(list))
             {
                 string key = (list.SelectedItem as MenuItem)?.ViewKey;
                 if (_views.ContainsKey(key))
