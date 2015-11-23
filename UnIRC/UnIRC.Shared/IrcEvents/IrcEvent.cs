@@ -10,8 +10,13 @@ namespace UnIRC.IrcEvents
         public DateTime Date { get; set; }
         public IrcMessage IrcMessage { get; set; }
 
-        private const string messageRegexPattern =
+        private const string _messageRegexPattern =
             "^(:(?<prefix>[^ ]+) +)?(?<command>[^ ]+)(?<innerparams>( +[^ ]+)*?)?( +:(?<outerparams>.*))?$";
+
+        public string FormattedDate => $"[{Date:T}] ";
+        public virtual string Output => $"{ToString()}";
+        public string TimestampedOutput => $"{FormattedDate}{Output}";
+
 
         public IrcEvent(IrcMessage ircMessage)
         {
@@ -21,7 +26,7 @@ namespace UnIRC.IrcEvents
 
         public static IrcEvent GetEvent(string rawData)
         {
-            Match match = Regex.Match(rawData, messageRegexPattern, RegexOptions.Compiled);
+            Match match = Regex.Match(rawData, _messageRegexPattern, RegexOptions.Compiled);
             if (!match.Success) throw new InvalidOperationException("IRCMessage data invalid.");
 
             string prefix = match.Groups["prefix"].Value;
@@ -52,17 +57,32 @@ namespace UnIRC.IrcEvents
                 case "invite":
                     return new IrcInviteEvent(m);
                 case "352":
+                    return new IrcWhoItemEvent(m);
                 case "315":
+                    return new IrcWhoEndEvent(m);
                 case "353":
+                    return new IrcNamesItemEvent(m);
                 case "366":
+                    return new IrcNamesEndEvent(m);
                 default:
                     return new IrcEvent(m);
             }
         }
 
+
         public override string ToString()
         {
-            return $@"[{Date:T}] {Type}: {IrcMessage.RawMessage}";
+            return $@"{Type}: {IrcMessage.RawMessage}";
+        }
+    }
+
+    public class IrcPingEvent : IrcEvent
+    {
+        public string Content { get; set; }
+
+        public IrcPingEvent(IrcMessage m) : base(m)
+        {
+            Content = m.Trailing;
         }
     }
 }

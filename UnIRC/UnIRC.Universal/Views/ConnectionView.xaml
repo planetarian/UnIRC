@@ -5,94 +5,88 @@
     xmlns:local="using:UnIRC.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
     xmlns:system="using:System"
     xmlns:viewModels="using:UnIRC.ViewModels"
     xmlns:ircEvents="using:UnIRC.IrcEvents"
-    mc:Ignorable="d"
     d:DataContext="{d:DesignInstance viewModels:ConnectionViewModel}">
-    <!--  -->
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <Grid Margin="20">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-            <TextBlock Text="{Binding DisplayName}" Margin="10" Grid.Row="0"/>
-            <TextBlock Text="{Binding Server.DisplayName}" Margin="10" Grid.Row="1"/>
-            <Grid Grid.Row="2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="{Binding IsConnected}" Margin="10"/>
-                <TextBlock Text="{Binding UnreadMessages}" Margin="10" Grid.Column="1"/>
-            </Grid>
-            <Grid Grid.Row="3">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*"/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-                <ComboBox
-                    ItemsSource="{Binding Servers}"
-                    SelectedItem="{Binding Server}"
-                    IsEnabled="{Binding IsConnected, Converter={StaticResource NegateConverter}}"
-                    HorizontalAlignment="Stretch"/>
-                <Button
-                    Content="Reconnect" Command="{Binding ReconnectCommand}"
-                    Visibility="{Binding IsConnected, Converter={StaticResource IsFalseVisibilityConverter}}"
-                    HorizontalAlignment="Stretch" Grid.Column="1"/>
-                <Button
-                    Content="Disconnect" Command="{Binding DisconnectCommand}"
-                    Visibility="{Binding IsConnected, Converter={StaticResource IsTrueVisibilityConverter}}"
-                    HorizontalAlignment="Stretch" Grid.Column="1"/>
-            </Grid>
-            <ListBox
-                x:Name="Messages"
-                ItemsSource="{Binding MessagesReceived}"
-                Grid.Row="4"
-                Loaded="MessagesLoaded">
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="Padding" Value="2"/>
-                    </Style>
-                </ListBox.ItemContainerStyle>
-                <ListBox.ItemTemplate>
-                    <DataTemplate x:DataType="ircEvents:IrcEvent">
-                        <TextBlock
-                            Text="{Binding}"
-                            TextWrapping="Wrap"
-                            FontFamily="Consolas"/>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-            <Grid Grid.Row="5">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBox
-                    Text="{Binding InputMessage, Mode=TwoWay,
-                    UpdateSourceTrigger=PropertyChanged}"
-                    InputScope="Chat"
-                    PlaceholderText="Message" TextWrapping="Wrap"
-                    ScrollViewer.VerticalScrollBarVisibility="Auto"
-                    KeyUp="MessageBoxKeyUp" KeyDown="MessageBoxKeyDown"
-                    Grid.Column="0"/>
-                <Button
-                    Style="{StaticResource IconButtonStyle}"
-                    Command="{Binding SendMessageCommand}"
-                    Content="&#xE725;" Grid.Column="1"
-                    Background="Gray"
-                    Margin="0" Padding="0"
-                    Width="36"
-                    VerticalAlignment="Stretch"/>
-            </Grid>
-
+        <TextBlock Text="{Binding DisplayName}" Margin="10,3" Grid.Row="0"/>
+        <TextBlock Text="{Binding Server.DisplayName}" Margin="10,3" Grid.Row="1"/>
+        <Grid Grid.Row="2" Margin="10,3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="{Binding IsConnected}"/>
+            <TextBlock Text="{Binding UnreadMessages}" Grid.Column="1"/>
+        </Grid>
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <ComboBox
+                ItemsSource="{Binding Servers,
+                UpdateSourceTrigger=PropertyChanged}"
+                SelectedItem="{Binding Server, Mode=TwoWay,
+                UpdateSourceTrigger=PropertyChanged}"
+                IsEnabled="{Binding IsConnected, Converter={StaticResource NegateConverter}}"
+                HorizontalAlignment="Stretch" DropDownClosed="ServerSelectorClosed"/>
+            <Button
+                Content="Reconnect" Command="{Binding ReconnectCommand}"
+                Visibility="{Binding IsConnected, Converter={StaticResource IsFalseVisibilityConverter}}"
+                HorizontalAlignment="Stretch" Click="InputLostFocus" Grid.Column="1"/>
+            <Button
+                Content="Disconnect" Command="{Binding DisconnectCommand}"
+                Visibility="{Binding IsConnected, Converter={StaticResource IsTrueVisibilityConverter}}"
+                HorizontalAlignment="Stretch" Click="InputLostFocus" Grid.Column="1"/>
+        </Grid>
+        <ListBox
+            x:Name="Messages"
+            ItemsSource="{Binding MessagesReceived}"
+            Grid.Row="4"
+            Loaded="MessagesLoaded"
+            ItemTemplateSelector="{StaticResource ConnectionPageTemplateSelector}"
+            GotFocus="InputLostFocus">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Padding" Value="2"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
+        <Grid Grid.Row="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="239*"/>
+                <ColumnDefinition Width="46*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox
+                x:Name="InputBox"
+                Text="{Binding InputMessage, Mode=TwoWay,
+                UpdateSourceTrigger=PropertyChanged}"
+                InputScope="Chat" PlaceholderText="Message" TextWrapping="Wrap"
+                ScrollViewer.VerticalScrollBarVisibility="Auto"
+                KeyUp="MessageBoxKeyUp" KeyDown="MessageBoxKeyDown"
+                Loaded="InputLostFocus"
+                Grid.Column="0" Grid.ColumnSpan="2"/>
+            <Button
+                Style="{StaticResource IconButtonStyle}"
+                Command="{Binding SendMessageCommand}"
+                Content="&#xE725;" Grid.Column="2"
+                Background="Gray"
+                Margin="0" Padding="0"
+                Width="36"
+                VerticalAlignment="Stretch"/>
         </Grid>
 
     </Grid>

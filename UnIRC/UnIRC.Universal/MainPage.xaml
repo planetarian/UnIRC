@@ -8,7 +8,8 @@
     xmlns:models="using:UnIRC.Models"
     xmlns:viewModels="using:UnIRC.ViewModels"
     mc:Ignorable="d"
-    DataContext="{Binding Main, Source={StaticResource Locator}}">
+    DataContext="{Binding Main, Source={StaticResource Locator}}"
+    Loaded="MainPageLoaded">
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.Resources>
             <Style x:Key="NavButtonStyle" TargetType="Button">
@@ -106,29 +107,63 @@
                         Style="{StaticResource FixedMenuStyle}"
                         Grid.Row="1"/>
                     <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-                        <ListBox
-                            x:Name="ConnectionsMenu"
-                            ItemsSource="{Binding Connections}"
-                            SelectionChanged="MenuSelectionChanged">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate x:DataType="viewModels:ConnectionViewModel">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock
-                                            Text="&#xE17B;" Style="{StaticResource GlyphStyle}" Grid.Column="0"
-                                            Visibility="{Binding IsConnected, Converter={StaticResource IsTrueVisibilityConverter}}"/>
-                                        <TextBlock
-                                            Text="&#xE17A;" Style="{StaticResource GlyphStyle}" Grid.Column="0"
-                                            Visibility="{Binding IsConnected, Converter={StaticResource IsFalseVisibilityConverter}}"
-                                            Foreground="Red" FontWeight="Black"/>
-                                        <TextBlock Text="{Binding DisplayName}" Style="{StaticResource MenuItemStyle}" Grid.Column="1"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <ListBox
+                                x:Name="ConnectionsMenu"
+                                ItemsSource="{Binding Connections}"
+                                SelectedItem="{Binding SelectedConnection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                SelectionChanged="MenuSelectionChanged">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="viewModels:ConnectionViewModel">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock
+                                                Text="&#xE17B;" Style="{StaticResource GlyphStyle}" Grid.Column="0"
+                                                Visibility="{Binding IsConnected, Converter={StaticResource IsTrueVisibilityConverter}}"/>
+                                            <TextBlock
+                                                Text="&#xE17A;" Style="{StaticResource GlyphStyle}" Grid.Column="0"
+                                                Visibility="{Binding IsConnected, Converter={StaticResource IsFalseVisibilityConverter}}"
+                                                Foreground="Red" FontWeight="Black"/>
+                                            <TextBlock Text="{Binding DisplayName}" Style="{StaticResource MenuItemStyle}" Grid.Column="1"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            <Grid DataContext="{Binding SelectedConnection}" Grid.Row="1">
+                                <ListBox
+                                    x:Name="ChannelsMenu"
+                                    ItemsSource="{Binding Channels}"
+                                    SelectedItem="{Binding SelectedChannel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    SelectionChanged="MenuSelectionChanged">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate x:DataType="viewModels:ChannelViewModel">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition/>
+                                                </Grid.ColumnDefinitions>
+                                                <Grid Visibility="{Binding IsJoined, Converter={StaticResource IsTrueVisibilityConverter}}" Grid.Column="0">
+                                                    <TextBlock Text="&#xE91C;" Style="{StaticResource GlyphStyle}"/>
+                                                </Grid>
+                                                <Grid Visibility="{Binding IsJoined, Converter={StaticResource IsFalseVisibilityConverter}}" Grid.Column="0">
+                                                    <TextBlock
+                                                        Text="&#xE91C;" Style="{StaticResource GlyphStyle}"
+                                                        Foreground="Red" FontWeight="Black"/>
+                                                </Grid>
+                                                <TextBlock Text="{Binding ChannelName}" Style="{StaticResource MenuItemStyle}" Grid.Column="1"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Grid>
+                        </Grid>
                     </ScrollViewer>
                     <ListBox
                         x:Name="LowerFixedMenu"

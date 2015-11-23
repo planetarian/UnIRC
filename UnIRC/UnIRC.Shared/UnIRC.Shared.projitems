@@ -21,13 +21,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcChannelModeEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcMessageEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcModeEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcNamesEndEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcNamesItemEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcNickEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcNoticeEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcPartEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcPrivmsgEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcQuitEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcUserModeEvent.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcWhoEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcWhoEndEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcWhoItemEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Messages\ConnectMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Messages\NetworksModifiedMessage.cs" />
@@ -35,6 +37,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\DirectServerConnectionEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\IConnectionEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\IrcUser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\IrcUserNamesEntry.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\IrcUserWhoEntry.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Menu.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\MenuItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Settings.cs" />

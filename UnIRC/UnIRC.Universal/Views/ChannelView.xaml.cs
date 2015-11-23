@@ -1,9 +1,18 @@
-﻿using Windows.System;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Controls;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
+using Windows.Foundation;
+using Windows.Foundation.Collections;
+using Windows.System;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Controls.Primitives;
+using Windows.UI.Xaml.Data;
+using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Navigation;
 using UnIRC.Helpers;
 using UnIRC.ViewModels;
 
@@ -14,7 +23,7 @@ namespace UnIRC.Views
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class ConnectionView : Page
+    public sealed partial class ChannelView : Page
     {
         private object _lock = new object();
         private ScrollViewer _messagesScrollViewer;
@@ -24,14 +33,14 @@ namespace UnIRC.Views
         private double _lastViewportHeight;
         private double _lastScrollViewerHeight;
 
-        public ConnectionView()
+        public ChannelView()
         {
             InitializeComponent();
         }
 
         private void MessageBoxKeyDown(object sender, KeyRoutedEventArgs e)
         {
-            var vm = DataContext as ConnectionViewModel;
+            var vm = DataContext as ChannelViewModel;
             if (vm == null) return;
 
             switch (e.Key)
@@ -48,7 +57,7 @@ namespace UnIRC.Views
         // VirtualKey.Down can't be handled on KeyDown if it's at position zero
         private void MessageBoxKeyUp(object sender, KeyRoutedEventArgs e)
         {
-            var vm = DataContext as ConnectionViewModel;
+            var vm = DataContext as ChannelViewModel;
             if (vm == null) return;
 
             if (e.Key == VirtualKey.Down)
@@ -58,7 +67,7 @@ namespace UnIRC.Views
         private void MessagesLoaded(object sender, RoutedEventArgs ev)
         {
             if (Messages.Items == null) return;
-            
+
             var listBorder = VisualTreeHelper.GetChild(Messages, 0) as Border;
             _messagesScrollViewer = VisualTreeHelper.GetChild(listBorder, 0) as ScrollViewer;
             _messagesScrollBar = _messagesScrollViewer.GetChildElement(0, 0, 1) as ScrollBar;

@@ -1,0 +1,75 @@
+﻿<Page
+    x:Class="UnIRC.Views.ChannelView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:UnIRC.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewModels="using:UnIRC.ViewModels"
+    mc:Ignorable="d"
+    d:DataContext="{d:DesignInstance viewModels:ChannelViewModel}">
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="{Binding ChannelName}" Margin="10,3" Grid.Row="0"/>
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <ListBox
+                x:Name="Messages"
+                Grid.Column="0"
+                ItemsSource="{Binding Messages}"
+                Loaded="MessagesLoaded"
+                ItemTemplateSelector="{StaticResource ConnectionPageTemplateSelector}"
+                GotFocus="InputLostFocus" MinWidth="300">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="2"/>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
+            <ListBox
+                ItemsSource="{Binding Users}"
+                DisplayMemberPath="Nick"
+                GotFocus="InputLostFocus"
+                MaxWidth="100"
+                Grid.Column="2"/>
+        </Grid>
+        <Grid Grid.Row="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="239*"/>
+                <ColumnDefinition Width="46*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox
+                x:Name="InputBox"
+                Text="{Binding InputMessage, Mode=TwoWay,
+                UpdateSourceTrigger=PropertyChanged}"
+                InputScope="Chat" PlaceholderText="Message" TextWrapping="Wrap"
+                ScrollViewer.VerticalScrollBarVisibility="Auto"
+                KeyUp="MessageBoxKeyUp" KeyDown="MessageBoxKeyDown"
+                Loaded="InputLostFocus"
+                Grid.Column="0" Grid.ColumnSpan="2"/>
+            <Button
+                Style="{StaticResource IconButtonStyle}"
+                Command="{Binding SendMessageCommand}"
+                Content="&#xE725;" Grid.Column="2"
+                Background="Gray"
+                Margin="0" Padding="0"
+                Width="36"
+                VerticalAlignment="Stretch"/>
+        </Grid>
+
+    </Grid>
+</Page>

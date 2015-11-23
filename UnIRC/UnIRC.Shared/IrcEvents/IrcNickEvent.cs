@@ -8,6 +8,8 @@ namespace UnIRC.IrcEvents
         public string OldNick { get; private set; }
         public string NewNick { get; private set; }
 
+        public override string Output => $"* {OldNick} is now known as {NewNick}";
+
         public IrcNickEvent(IrcMessage m) : base(m)
         {
             User = new IrcUser(m.Prefix);

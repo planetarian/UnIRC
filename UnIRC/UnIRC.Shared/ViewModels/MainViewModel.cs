@@ -41,6 +41,14 @@ namespace UnIRC.ViewModels
         private ObservableCollection<ConnectionViewModel> _connections
             = new ObservableCollection<ConnectionViewModel>();
 
+        public ConnectionViewModel SelectedConnection
+        {
+            get { return _selectedConnection; }
+            set { Set(ref _selectedConnection, value); }
+        }
+        private ConnectionViewModel _selectedConnection;
+
+
 
         public ObservableCollection<ErrorMessage> Errors
         {
