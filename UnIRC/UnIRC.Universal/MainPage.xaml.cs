@@ -104,7 +104,7 @@ namespace UnIRC
                 NavigationSplitView.IsPaneOpen = false;
         }
 
-        private void MenuButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        private void MenuButton_Click(object sender, RoutedEventArgs e)
         {
             NavigationSplitView.IsPaneOpen = !NavigationSplitView.IsPaneOpen;
         }
