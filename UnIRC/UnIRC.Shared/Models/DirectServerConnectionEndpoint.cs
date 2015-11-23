@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Networking;
+using UnIRC.IrcEvents;
 
 namespace UnIRC.Shared.Models
 {
@@ -31,9 +32,9 @@ namespace UnIRC.Shared.Models
             await Connections[connectionId].DisconnectAsync();
         }
 
-        public async Task<string> ReadStringAsync(int connectionId)
+        public async Task<IrcEvent> WaitForEventAsync(int connectionId)
         {
-            return await Connections[connectionId].ReadStringAsync();
+            return await Connections[connectionId].WaitForEventAsync();
         }
 
         public async Task SendStringAsync(int connectionId, string data)

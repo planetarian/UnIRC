@@ -3,9 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using UnIRC.Models;
 using UnIRC.Shared.Helpers;
-using UnIRC.ViewModels;
 
-namespace UnIRC.Shared.ViewModels
+namespace UnIRC.ViewModels
 {
     public class ServerViewModel : ViewModelBaseExtended
     {

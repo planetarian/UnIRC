@@ -4,9 +4,8 @@ using GalaSoft.MvvmLight.Views;
 using UnIRC.Models;
 using UnIRC.Shared.Messages;
 using UnIRC.Shared.Models;
-using UnIRC.ViewModels;
 
-namespace UnIRC.Shared.ViewModels
+namespace UnIRC.ViewModels
 {
     public class MainViewModel : ViewModelBaseExtended
     {

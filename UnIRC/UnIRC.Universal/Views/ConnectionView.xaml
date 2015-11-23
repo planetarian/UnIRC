@@ -5,10 +5,12 @@
     xmlns:local="using:UnIRC.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:viewModels="using:UnIRC.Shared.ViewModels"
     xmlns:system="using:System"
+    xmlns:viewModels="using:UnIRC.ViewModels"
+    xmlns:ircEvents="using:UnIRC.IrcEvents"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance viewModels:ConnectionViewModel}">
+    <!--  -->
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid Margin="20">
             <Grid.RowDefinitions>
@@ -28,32 +30,46 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding IsConnected}" Margin="10"/>
+                <TextBlock Text="{Binding UnreadMessages}" Margin="10" Grid.Column="1"/>
+            </Grid>
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <ComboBox
+                    ItemsSource="{Binding Servers}"
+                    SelectedItem="{Binding Server}"
+                    IsEnabled="{Binding IsConnected, Converter={StaticResource NegateConverter}}"
+                    HorizontalAlignment="Stretch"/>
                 <Button
                     Content="Reconnect" Command="{Binding ReconnectCommand}"
                     Visibility="{Binding IsConnected, Converter={StaticResource IsFalseVisibilityConverter}}"
-                    Grid.Column="1"/>
+                    HorizontalAlignment="Stretch" Grid.Column="1"/>
                 <Button
                     Content="Disconnect" Command="{Binding DisconnectCommand}"
                     Visibility="{Binding IsConnected, Converter={StaticResource IsTrueVisibilityConverter}}"
-                    Grid.Column="1"/>
+                    HorizontalAlignment="Stretch" Grid.Column="1"/>
             </Grid>
-            <TextBlock Text="{Binding UnreadMessages}" Margin="10" Grid.Row="3"/>
-
             <ListBox
+                x:Name="Messages"
                 ItemsSource="{Binding MessagesReceived}"
-                Grid.Row="4">
+                Grid.Row="4"
+                Loaded="MessagesLoaded">
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
                         <Setter Property="Padding" Value="2"/>
                     </Style>
                 </ListBox.ItemContainerStyle>
                 <ListBox.ItemTemplate>
-                    <DataTemplate x:DataType="system:String">
-                        <TextBlock Text="{Binding}" TextWrapping="Wrap"/>
+                    <DataTemplate x:DataType="ircEvents:IrcEvent">
+                        <TextBlock
+                            Text="{Binding}"
+                            TextWrapping="Wrap"
+                            FontFamily="Consolas"/>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-
             <Grid Grid.Row="5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>

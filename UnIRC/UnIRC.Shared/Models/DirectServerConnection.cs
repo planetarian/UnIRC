@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using UnIRC.IrcEvents;
 #if WINDOWS_UWP
 using Windows.Networking;
 using Windows.Networking.Sockets;
@@ -57,7 +58,7 @@ namespace UnIRC.Shared.Models
 #endif
         }
 
-        public async Task<string> ReadStringAsync()
+        public async Task<IrcEvent> WaitForEventAsync()
         {
 #if WINDOWS_UWP
             const int bufferLength = 250;
@@ -69,7 +70,7 @@ namespace UnIRC.Shared.Models
                 {
                     string message = CurrentReadData.Substring(0, breakIndex);
                     CurrentReadData = CurrentReadData.Substring(breakIndex + nl.Length);
-                    return message;
+                    return IrcEvent.GetEvent(message);
                 }
 
                 uint bytesRead = await Reader.LoadAsync(bufferLength);

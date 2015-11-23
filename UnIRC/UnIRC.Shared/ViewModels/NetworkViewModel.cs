@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
@@ -9,9 +8,8 @@ using UnIRC.Models;
 using UnIRC.Shared.Helpers;
 using UnIRC.Shared.Messages;
 using UnIRC.Shared.Models;
-using UnIRC.ViewModels;
 
-namespace UnIRC.Shared.ViewModels
+namespace UnIRC.ViewModels
 {
     public class NetworkViewModel : ViewModelBaseExtended
     {
@@ -237,44 +235,6 @@ namespace UnIRC.Shared.ViewModels
             IsEditingServer = true;
         }
 
-        private void SaveServer()
-        {
-            if (IsDeletingServer)
-            {
-                Servers.Remove(SelectedServer);
-                SelectedServer = null;
-                IsDeletingServer = false;
-            }
-            else if (IsEditingServer)
-            {
-                ServerViewModel editedServer = SelectedServer;
-                SelectedServer = null;
-                if (IsAddingNewServer)
-                {
-                    editedServer = new ServerViewModel();
-                    Servers.Add(editedServer);
-                }
-                ApplyNewServerProperties(editedServer);
-                SelectedServer = editedServer;
-            }
-            CancelServerOperation();
-            Send(new NetworksModifiedMessage());
-        }
-
-        private void CancelServerOperation()
-        {
-            if (IsDeletingServer)
-            {
-                IsDeletingServer = false;
-            }
-            else
-            {
-                IsAddingNewServer = false;
-                IsEditingServer = false;
-                ClearServerForm();
-            }
-        }
-
         private void GetServerProperties(ServerViewModel sourceServer)
         {
             NewServerName = sourceServer?.Name;
@@ -317,7 +277,7 @@ namespace UnIRC.Shared.ViewModels
                    && NewServerPorts.Count > 0
                    && Servers != null
                    && !Servers
-                       .Where(s => s.Server.DisplayName != SelectedServer.Server.DisplayName)
+                       .Where(s => SelectedServer == null || s.Server.DisplayName != SelectedServer.Server.DisplayName)
                        .Select(s => s.DisplayName)
                        .Contains(newName);
         }
@@ -361,6 +321,44 @@ namespace UnIRC.Shared.ViewModels
         {
             NewServerPorts.Remove(SelectedPortRange);
             SelectedPortRange = null;
+        }
+
+        private void SaveServer()
+        {
+            if (IsDeletingServer)
+            {
+                Servers.Remove(SelectedServer);
+                SelectedServer = Servers.FirstOrDefault();
+                IsDeletingServer = false;
+            }
+            else if (IsEditingServer)
+            {
+                ServerViewModel editedServer = SelectedServer;
+                SelectedServer = null;
+                if (IsAddingNewServer)
+                {
+                    editedServer = new ServerViewModel();
+                    Servers.Add(editedServer);
+                }
+                ApplyNewServerProperties(editedServer);
+                SelectedServer = editedServer;
+            }
+            CancelServerOperation();
+            Send(new NetworksModifiedMessage());
+        }
+
+        private void CancelServerOperation()
+        {
+            if (IsDeletingServer)
+            {
+                IsDeletingServer = false;
+            }
+            else
+            {
+                IsAddingNewServer = false;
+                IsEditingServer = false;
+                ClearServerForm();
+            }
         }
 
     }

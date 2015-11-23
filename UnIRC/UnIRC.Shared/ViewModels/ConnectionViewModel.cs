@@ -3,20 +3,20 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Windows.Networking;
+using UnIRC.IrcEvents;
 using UnIRC.Models;
 using UnIRC.Shared.Helpers;
+using UnIRC.Shared.Messages;
 using UnIRC.Shared.Models;
-using UnIRC.ViewModels;
 
-namespace UnIRC.Shared.ViewModels
+namespace UnIRC.ViewModels
 {
     public class ConnectionViewModel : ViewModelBaseExtended
     {
-        private const int SleepMillis = 100;
+        private const int SleepMillis = 2;
 
         private static int _nextConnectionId = 1;
 
@@ -34,12 +34,45 @@ namespace UnIRC.Shared.ViewModels
         }
         private Network _network;
 
+        public ObservableCollection<Server> Servers
+        {
+            get { return _servers; }
+            set { Set(ref _servers, value); }
+        }
+        private ObservableCollection<Server> _servers;
+
+
+
         public Server Server
         {
             get { return _server; }
             set { Set(ref _server, value); }
         }
         private Server _server;
+
+        public string Address
+        {
+            get { return _address; }
+            set { Set(ref _address, value); }
+        }
+        private string _address;
+
+        public int Port
+        {
+            get { return _port; }
+            set { Set(ref _port, value); }
+        }
+        private int _port;
+
+        public string Password
+        {
+            get { return _password; }
+            set { Set(ref _password, value); }
+        }
+        private string _password;
+
+
+
 
         public UserInfo UserInfo
         {
@@ -121,13 +154,13 @@ namespace UnIRC.Shared.ViewModels
         }
         private int _lastSuccessfulPort;
 
-        public ObservableCollection<string> MessagesReceived
+        public ObservableCollection<IrcEvent> MessagesReceived
         {
             get { return _messagesReceived; }
             set { Set(ref _messagesReceived, value); }
         }
-        private ObservableCollection<string> _messagesReceived
-            = new ObservableCollection<string>();
+        private ObservableCollection<IrcEvent> _messagesReceived
+            = new ObservableCollection<IrcEvent>();
 
         public List<string> MessagesSent
         {
@@ -169,9 +202,12 @@ namespace UnIRC.Shared.ViewModels
 
         public ConnectionViewModel(Network network, Server server, UserInfo userInfo, IConnectionEndpoint endpoint)
         {
+            if (IsInDesignModeStatic || IsInDesignMode) return;
+
             ConnectionId = _nextConnectionId++;
 
-            this.OnChanged(x => x.Network).Do(() => DisplayName = Network?.Name);
+            this.OnChanged(x => x.Network, x => x.Nick)
+                .Do(() => DisplayName = $"{Network?.Name} ({Nick})");
             this.OnChanged(x => x.InputMessage).Do(
                 () =>
                 {
@@ -187,6 +223,17 @@ namespace UnIRC.Shared.ViewModels
                         CurrentTypedMessage = InputMessage;
                     }
                 });
+
+
+            Register<NetworksModifiedMessage>(m =>
+            {
+                Server selected = Server;
+                // ReSharper disable once ExplicitCallerInfoArgument
+                Servers = Network.Servers.ToObservable();
+                RaisePropertyChanged(nameof(Servers));
+                if (Servers.Contains(selected))
+                    Server = selected;
+            });
 
             ReconnectCommand = GetCommand(async () => await Connect(),
                 () => !IsConnected, () => IsConnected);
@@ -212,9 +259,13 @@ namespace UnIRC.Shared.ViewModels
             DefaultNick = userInfo.Nick;
             BackupNick = userInfo.BackupNick;
 
+            // Set the starting nick, it will be changed if there's a clash anyway
+            Nick = DefaultNick;
+
             Endpoint.CreateConnection(ConnectionId);
 
             Task connectTask = Connect();
+            //*/
         }
 
         private void PrevHistoryMessage()
@@ -238,35 +289,43 @@ namespace UnIRC.Shared.ViewModels
 
         private async Task Connect()
         {
-            MessagesReceived.Add("[ Connecting... ]");
-            int port = LastSuccessfulPort;
+            DisplayEvent("[ Connecting... ]");
+
+            // Copy the data so that it stays current even if we edit the server data in the meantime
+            Address = Server.Address;
+            Port = LastSuccessfulPort;
+            Password = Server.Password;
             if (LastSuccessfulPort == 0)
             {
                 IEnumerable<int> allPorts = Server.AllPorts.ToArray();
-                port = allPorts.Last() <= LastSuccessfulPort ? allPorts.First() : allPorts.FirstOrDefault(p => p > LastSuccessfulPort);
+                Port = allPorts.Last() <= LastSuccessfulPort ? allPorts.First() : allPorts.FirstOrDefault(p => p > LastSuccessfulPort);
             }
+
             try {
-                await Endpoint.ConnectAsync(ConnectionId, Server.Address, port);
+                await Endpoint.ConnectAsync(ConnectionId, Address, Port);
                 IsConnected = true;
-                if (!Server.Password.IsNullOrEmpty())
-                    await SendMessageAsync($"PASS {Server.Password}");
+                if (!Password.IsNullOrEmpty())
+                    await SendMessageAsync($"PASS {Password}");
                 await SendMessageAsync($"NICK {DefaultNick}");
                 HostName localAddress = Endpoint.GetLocalAddress(ConnectionId);
-                await SendMessageAsync($@"USER {EmailAddress} ""{localAddress}"" ""{Server.Address}"" :{FullName}");
+                await SendMessageAsync($@"USER {EmailAddress} ""{localAddress}"" ""{Address}"" :{FullName}");
             }
             catch (Exception ex)
             {
-                MessagesReceived.Add($"[ Connect() Error: {ex.Message} ]");
+                DisplayEvent($"[ Connect() Error: {ex.Message} ]");
             }
 
             await WaitForData();
         }
 
-        private async Task Disconnect()
+        private async Task Disconnect(string message = null)
         {
+            const string defaultMessage = "User disconnected.";
+            await SendMessageAsync($"QUIT :{message ?? defaultMessage}");
+            await Task.Delay(1000);
             await Endpoint.DisconnectAsync(ConnectionId);
             IsConnected = false;
-            MessagesReceived.Add("[ Disconnected ]");
+            DisplayEvent("[ Disconnected ]");
         }
 
         private async Task WaitForData()
@@ -278,23 +337,33 @@ namespace UnIRC.Shared.ViewModels
                 string incomingMessage;
                 try
                 {
-                    incomingMessage = await Endpoint.ReadStringAsync(ConnectionId);
+                    IrcEvent ev = await Endpoint.WaitForEventAsync(ConnectionId);
+                    HandleEvent(ev);
+                    continue;
                 }
-                catch (EndOfStreamException ex)
+                catch (EndOfStreamException)
                 {
                     IsConnected = false;
                     incomingMessage = "[ Socket Disconnected ]";
                 }
-                catch (ObjectDisposedException ex)
+                catch (Exception ex) when (ex.HResult == -2147014843)
                 {
                     // We closed the connection and cleanly disposed the reader
-                    continue;
+                    IsConnected = false;
+                    incomingMessage = $"[ Connection closed (socket aborted) ]";
+                }
+                catch (ObjectDisposedException)
+                {
+                    // We closed the connection and cleanly disposed the reader
+                    IsConnected = false;
+                    incomingMessage = $"[ Connection closed (object disposed) ]";
                 }
                 catch (Exception ex)
                 {
+                    IsConnected = false;
                     incomingMessage = $"[ WaitForData() Error: {ex.Message} ]";
                 }
-                MessagesReceived.Add(incomingMessage);
+                DisplayEvent(incomingMessage);
             }
         }
 
@@ -309,8 +378,102 @@ namespace UnIRC.Shared.ViewModels
 
         private async Task SendMessageAsync(string message)
         {
-            MessagesReceived.Add($"< {message}");
-            await Endpoint.SendStringAsync(ConnectionId, message);
+            DisplayEvent($"< {message}");
+            if (!IsConnected)
+            {
+                DisplayEvent($"[ Not connected to server. ]");
+                return;
+            }
+
+            try
+            {
+                await Endpoint.SendStringAsync(ConnectionId, message);
+            }
+            catch (Exception ex)
+            {
+                IsConnected = false;
+                DisplayEvent($"[ SendMessageAsync(message) Error: {ex.Message} ]");
+            }
+        }
+
+        private void DisplayEvent(IrcEvent ev)
+        {
+            MessagesReceived.Add(ev);
+        }
+
+        private void DisplayEvent(string ev)
+        {
+            MessagesReceived.Add(IrcEvent.GetEvent(ev));
+        }
+
+        private void HandleEvent(IrcEvent ev)
+        {
+            DisplayEvent(ev);
+            new TypeSwitch()
+                .Case<IrcEvent>(e => { })
+                .Case<IrcChannelModeEvent>(HandleEvent)
+                .Case<IrcInviteEvent>(HandleEvent)
+                .Case<IrcJoinEvent>(HandleEvent)
+                .Case<IrcKickEvent>(HandleEvent)
+                .Case<IrcNickEvent>(HandleEvent)
+                .Case<IrcNoticeEvent>(HandleEvent)
+                .Case<IrcPartEvent>(HandleEvent)
+                .Case<IrcPrivmsgEvent>(HandleEvent)
+                .Case<IrcQuitEvent>(HandleEvent)
+                .Case<IrcUserModeEvent>(HandleEvent)
+                .Case<IrcWhoEvent>(HandleEvent)
+                .Case<IrcWhoItemEvent>(HandleEvent)
+                .Switch(ev);
+        }
+
+        private void HandleEvent(IrcChannelModeEvent ev)
+        {
+        }
+
+        private void HandleEvent(IrcInviteEvent ev)
+        {
+        }
+
+        private void HandleEvent(IrcJoinEvent ev)
+        {
+        }
+
+        private void HandleEvent(IrcKickEvent ev)
+        {
+        }
+
+        private void HandleEvent(IrcNickEvent ev)
+        {
+            if (ev.OldNick == Nick)
+                Nick = ev.NewNick;
+        }
+
+        private void HandleEvent(IrcNoticeEvent ev)
+        {
+        }
+
+        private void HandleEvent(IrcPartEvent ev)
+        {
+        }
+
+        private void HandleEvent(IrcPrivmsgEvent ev)
+        {
+        }
+
+        private void HandleEvent(IrcQuitEvent ev)
+        {
+        }
+
+        private void HandleEvent(IrcUserModeEvent ev)
+        {
+        }
+
+        private void HandleEvent(IrcWhoEvent ev)
+        {
+        }
+
+        private void HandleEvent(IrcWhoItemEvent ev)
+        {
         }
     }
 }

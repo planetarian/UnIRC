@@ -1,5 +1,4 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
@@ -9,9 +8,8 @@ using UnIRC.Models;
 using UnIRC.Shared.Helpers;
 using UnIRC.Shared.Messages;
 using UnIRC.Shared.Models;
-using UnIRC.ViewModels;
 
-namespace UnIRC.Shared.ViewModels
+namespace UnIRC.ViewModels
 {
     public class NetworksViewModel : ViewModelBaseExtended
     {

@@ -29,7 +29,6 @@ namespace UnIRC
         /// </summary>
         public App()
         {
-            Microsoft.ApplicationInsights.WindowsAppInitializer.InitializeAsync();
             this.InitializeComponent();
             this.Suspending += OnSuspending;
         }

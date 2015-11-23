@@ -1,8 +1,7 @@
 ﻿using System;
 using GalaSoft.MvvmLight.Views;
-using UnIRC.ViewModels;
 
-namespace UnIRC.Shared.ViewModels
+namespace UnIRC.ViewModels
 {
     public class ViewModelLocator : ViewModelLocatorBase
     {

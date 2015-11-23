@@ -6,7 +6,7 @@ using Windows.Foundation.Collections;
 using Windows.UI.ViewManagement;
 using UnIRC.Models;
 using Windows.UI.Xaml.Controls;
-using UnIRC.Shared.ViewModels;
+using UnIRC.ViewModels;
 using UnIRC.Views;
 
 namespace UnIRC

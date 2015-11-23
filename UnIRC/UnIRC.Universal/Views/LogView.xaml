@@ -5,7 +5,6 @@
     xmlns:local="using:UnIRC"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:viewModels="using:UnIRC.Shared.ViewModels"
     mc:Ignorable="d"
     DataContext="{Binding Main, Source={StaticResource Locator}}">
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
