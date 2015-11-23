@@ -30,15 +30,15 @@ namespace UnIRC
         private readonly Dictionary<ConnectionViewModel, Page> _connectionPages
             = new Dictionary<ConnectionViewModel, Page>();
 
-        private readonly Dictionary<ConnectionViewModel, Dictionary<string, Page>> _channelPages
-            = new Dictionary<ConnectionViewModel, Dictionary<string, Page>>();
+        private readonly Dictionary<ConnectionViewModel, Dictionary<ChannelViewModel, Page>> _channelPages
+            = new Dictionary<ConnectionViewModel, Dictionary<ChannelViewModel, Page>>();
 
         public MainPage()
         {
             InitializeComponent();
             ApplicationView.GetForCurrentView().SetPreferredMinSize(new Size(340, 530));
 
-            _allMenus = new[] {UpperFixedMenu, ConnectionsMenu, LowerFixedMenu};
+            _allMenus = new[] {UpperFixedMenu, ConnectionsMenu, ChannelsMenu, LowerFixedMenu};
             _fixedMenus = new[] {UpperFixedMenu, LowerFixedMenu};
             
         }
@@ -69,25 +69,28 @@ namespace UnIRC
         {
             var vm = DataContext as MainViewModel;
             if (vm == null) return;
+            ConnectionViewModel selectedConnection = vm.MenuSelectedConnection;
+            ChannelViewModel selectedChannel = selectedConnection?.SelectedChannel;
 
             var list = (ListBox) sender;
             if (list.SelectedIndex == -1)
                 return;
 
             foreach (ListBox listBox in _allMenus.Where(listBox => listBox != list))
+            {
                 listBox.SelectedItem = null;
+            }
 
             if (list == ConnectionsMenu)
             {
-                var selected = (ConnectionViewModel)ConnectionsMenu.SelectedItem;
-                if (_connectionPages.ContainsKey(selected))
-                    ContentFrame.Content = _connectionPages[selected];
+                if (_connectionPages.ContainsKey(selectedConnection))
+                    ContentFrame.Content = _connectionPages[selectedConnection];
             }
-            if (list == ChannelsMenu)
+            else if (list == ChannelsMenu)
             {
-                var selected = (ChannelViewModel)ChannelsMenu.SelectedItem;
-                if (_connectionPages.ContainsKey(selected))
-                    ContentFrame.Content = _connectionPages[selected];
+                if (_channelPages.ContainsKey(selectedConnection)
+                    && _channelPages[selectedConnection].ContainsKey(selectedChannel))
+                    ContentFrame.Content = _channelPages[selectedConnection][selectedChannel];
             }
             else if (_fixedMenus.Contains(list))
             {
@@ -96,7 +99,8 @@ namespace UnIRC
                     ContentFrame.Navigate(_views[key]);
             }
 
-            if (NavigationSplitView.DisplayMode == SplitViewDisplayMode.CompactOverlay || NavigationSplitView.DisplayMode == SplitViewDisplayMode.Overlay)
+            if (NavigationSplitView.DisplayMode == SplitViewDisplayMode.CompactOverlay
+                || NavigationSplitView.DisplayMode == SplitViewDisplayMode.Overlay)
                 NavigationSplitView.IsPaneOpen = false;
         }
 
@@ -134,24 +138,24 @@ namespace UnIRC
                     _channelPages.Remove(connection);
                 }
                 _connectionPages.Remove(connection);
-                connection.Channels.CollectionChanged -= ChannelsChanged;
+                //connection.Channels.CollectionChanged -= ChannelsChanged;
             }
             foreach (ConnectionViewModel connection in added)
             {
                 var view = new ConnectionView { DataContext = connection };
                 _connectionPages.Add(connection, view);
-                _channelPages.Add(connection, new Dictionary<string, Page>());
+                _channelPages.Add(connection, new Dictionary<ChannelViewModel, Page>());
                 vm.SelectedConnection = connection;
-                connection.Channels.CollectionChanged += ChannelsChanged;
+                //connection.Channels.CollectionChanged += ChannelsChanged;
             }
         }
 
         private void ChannelsChanged(object sender, NotifyCollectionChangedEventArgs ev)
         {
-            var vm = sender as ChannelViewModel;
+            var vm = DataContext as MainViewModel;
             if (vm == null) return;
-
-            ConnectionViewModel connection = vm.Connection;
+            ConnectionViewModel connection = vm.MenuSelectedConnection;
+            
             if (!_channelPages.ContainsKey(connection))
                 throw new Exception("Connection not found in page cache");
 
@@ -162,15 +166,15 @@ namespace UnIRC
             IEnumerable<ChannelViewModel> removed = oldItems.Where(i => !newItems.Contains(i));
 
 
-            Dictionary<string, Page> pages = _channelPages[connection];
-            foreach (ChannelViewModel channel in removed.Where(channel => pages.ContainsKey(channel.ChannelName)))
+            Dictionary<ChannelViewModel, Page> pages = _channelPages[connection];
+            foreach (ChannelViewModel channel in removed.Where(channel => pages.ContainsKey(channel)))
             {
-                pages.Remove(channel.ChannelName);
+                pages.Remove(channel);
             }
             foreach (ChannelViewModel channel in added)
             {
                 var view = new ChannelView { DataContext = channel };
-                pages.Add(channel.ChannelName, view);
+                pages.Add(channel, view);
                 connection.SelectedChannel = channel;
             }
         }

@@ -131,13 +131,14 @@ namespace UnIRC.ViewModels
         private async Task SendMessageToChannel()
         {
             string inputMessage = InputMessage;
+            InputMessage = "";
             MessagesSent.Add(inputMessage);
             CurrentMessageHistoryIndex = MessagesSent.Count;
-            InputMessage = "";
-            if (inputMessage.StartsWith("/raw "))
+            const string rawCommand = "/raw ";
+            if (inputMessage.StartsWith(rawCommand) && inputMessage.Length > rawCommand.Length)
                 await Connection.SendMessageAsync(inputMessage.Substring(5));
             else
-                await Connection.SendMessageAsync($"PRIVMSG {ChannelName} :{InputMessage}");
+                await Connection.SendMessageAsync($"PRIVMSG {ChannelName} :{inputMessage}");
         }
     }
 }

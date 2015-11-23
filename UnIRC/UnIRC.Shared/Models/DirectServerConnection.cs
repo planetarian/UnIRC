@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using UnIRC.IrcEvents;
+using UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding;
 #if WINDOWS_UWP
 using Windows.Networking;
 using Windows.Networking.Sockets;
@@ -33,8 +34,11 @@ namespace UnIRC.Shared.Models
             Socket = new StreamSocket();
             var targetHostname = new HostName(hostname);
             await Socket.ConnectAsync(targetHostname, port.ToString());
-            Reader = new DataReader(Socket.InputStream);
-            Reader.InputStreamOptions = InputStreamOptions.Partial;
+            Reader = new DataReader(Socket.InputStream)
+            {
+                InputStreamOptions = InputStreamOptions.Partial,
+                UnicodeEncoding = UnicodeEncoding.Utf8
+            };
             Writer = new DataWriter(Socket.OutputStream);
 #else
             throw new NotImplementedException();

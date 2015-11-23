@@ -6,7 +6,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Windows.ApplicationModel.Core;
 using Windows.Networking;
+using Windows.UI.Core;
 using UnIRC.IrcEvents;
 using UnIRC.Models;
 using UnIRC.Shared.Helpers;
@@ -383,7 +385,7 @@ namespace UnIRC.ViewModels
                 catch (Exception ex)
                 {
                     IsConnected = false;
-                    incomingMessage = $"[ WaitForData() Error: {ex.Message} ]{Environment.NewLine}{ex.StackTrace}";
+                    incomingMessage = $"[ WaitForData() Error: {ex.Message} ]{Environment.NewLine}{ex}";
                 }
                 DisplayEvent(incomingMessage);
             }

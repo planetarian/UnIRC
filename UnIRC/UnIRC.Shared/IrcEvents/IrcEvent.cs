@@ -27,7 +27,8 @@ namespace UnIRC.IrcEvents
         public static IrcEvent GetEvent(string rawData)
         {
             Match match = Regex.Match(rawData, _messageRegexPattern, RegexOptions.Compiled);
-            if (!match.Success) throw new InvalidOperationException("IRCMessage data invalid.");
+            if (!match.Success)
+                throw new InvalidOperationException("IRCMessage data invalid.");
 
             string prefix = match.Groups["prefix"].Value;
             string command = match.Groups["command"].Value;

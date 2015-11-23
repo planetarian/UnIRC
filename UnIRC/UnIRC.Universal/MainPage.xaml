@@ -136,7 +136,7 @@
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
-                            <Grid DataContext="{Binding SelectedConnection}" Grid.Row="1">
+                            <Grid DataContext="{Binding MenuSelectedConnection}" Grid.Row="1">
                                 <ListBox
                                     x:Name="ChannelsMenu"
                                     ItemsSource="{Binding Channels}"

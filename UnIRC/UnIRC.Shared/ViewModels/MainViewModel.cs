@@ -2,6 +2,7 @@
 using System.Windows.Input;
 using GalaSoft.MvvmLight.Views;
 using UnIRC.Models;
+using UnIRC.Shared.Helpers;
 using UnIRC.Shared.Messages;
 using UnIRC.Shared.Models;
 
@@ -48,6 +49,29 @@ namespace UnIRC.ViewModels
         }
         private ConnectionViewModel _selectedConnection;
 
+        public ConnectionViewModel MenuSelectedConnection
+        {
+            get { return _menuSelectedConnection; }
+            set { Set(ref _menuSelectedConnection, value); }
+        }
+        private ConnectionViewModel _menuSelectedConnection;
+
+
+        public ObservableCollection<ChannelViewModel> Channels
+        {
+            get { return _channels; }
+            set { Set(ref _channels, value); }
+        }
+        private ObservableCollection<ChannelViewModel> _channels
+            = new ObservableCollection<ChannelViewModel>();
+
+        public ChannelViewModel SelectedChannel
+        {
+            get { return _selectedChannel; }
+            set { Set(ref _selectedChannel, value); }
+        }
+        private ChannelViewModel _selectedChannel;
+
 
 
         public ObservableCollection<ErrorMessage> Errors
@@ -66,13 +90,25 @@ namespace UnIRC.ViewModels
         private ObservableCollection<Message> _messages
             = new ObservableCollection<Message>();
 
-        public IConnectionEndpoint _directServerEndpoint = new DirectServerConnectionEndpoint();
+        private readonly IConnectionEndpoint _directServerEndpoint = new DirectServerConnectionEndpoint();
         
         public ICommand ClearErrorsCommand { get; set; }
 
         public MainViewModel(INavigationService navigationService)
         {
             _navigationService = navigationService;
+
+            this.OnChanged(x => x.SelectedConnection).Do(
+                () =>
+                {
+                    if (SelectedConnection != null)
+                    {
+                        MenuSelectedConnection = SelectedConnection;
+                        Channels = MenuSelectedConnection.Channels.ToObservable();
+                    }
+                    else if (!Connections.Contains(MenuSelectedConnection))
+                        Channels.Clear();
+                });
 
             Register<ErrorMessage>(m => Errors.Add(m));
             Register<Message>(true, m => Messages.Add(m));
