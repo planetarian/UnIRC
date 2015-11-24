@@ -56,21 +56,15 @@ namespace UnIRC.ViewModels
         }
         private ConnectionViewModel _menuSelectedConnection;
 
-
-        public ObservableCollection<ChannelViewModel> Channels
+        public ObservableCollection<ChannelViewModel> ConnectionChannels
         {
-            get { return _channels; }
-            set { Set(ref _channels, value); }
+            get { return _connectionChannels; }
+            set { Set(ref _connectionChannels, value); }
         }
-        private ObservableCollection<ChannelViewModel> _channels
+        private ObservableCollection<ChannelViewModel> _connectionChannels
             = new ObservableCollection<ChannelViewModel>();
 
-        public ChannelViewModel SelectedChannel
-        {
-            get { return _selectedChannel; }
-            set { Set(ref _selectedChannel, value); }
-        }
-        private ChannelViewModel _selectedChannel;
+
 
 
 
@@ -104,10 +98,10 @@ namespace UnIRC.ViewModels
                     if (SelectedConnection != null)
                     {
                         MenuSelectedConnection = SelectedConnection;
-                        Channels = MenuSelectedConnection.Channels.ToObservable();
+                        ConnectionChannels = MenuSelectedConnection.Channels;
                     }
                     else if (!Connections.Contains(MenuSelectedConnection))
-                        Channels.Clear();
+                        ConnectionChannels = null;
                 });
 
             Register<ErrorMessage>(m => Errors.Add(m));

@@ -13,9 +13,7 @@
         public static IrcModeEvent GetEvent(IrcMessage m)
         {
             if (m.Parameters.Length > 1 && m.Parameters[0].Substring(0, 1) == "#")
-            {
                 return new IrcChannelModeEvent(m);
-            }
             return new IrcUserModeEvent(m);
         }
     }

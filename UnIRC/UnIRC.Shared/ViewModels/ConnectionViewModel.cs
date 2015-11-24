@@ -9,6 +9,7 @@ using System.Windows.Input;
 using Windows.ApplicationModel.Core;
 using Windows.Networking;
 using Windows.UI.Core;
+using GalaSoft.MvvmLight.Threading;
 using UnIRC.IrcEvents;
 using UnIRC.Models;
 using UnIRC.Shared.Helpers;
@@ -19,7 +20,7 @@ namespace UnIRC.ViewModels
 {
     public class ConnectionViewModel : ViewModelBaseExtended
     {
-        private const int SleepMillis = 2;
+        private const int SleepMillis = 10;
 
         private static int _nextConnectionId = 1;
 
@@ -248,6 +249,10 @@ namespace UnIRC.ViewModels
                         CurrentTypedMessage = InputMessage;
                     }
                 });
+            // ReSharper disable once ReturnValueOfPureMethodIsNotUsed
+            this.OnChanged(x => x.IsConnected).Do(() => Channels.Select(c => c.IsJoined = false));
+            // ReSharper disable once ExplicitCallerInfoArgument
+            this.OnCollectionChanged(x => x.Channels).Do(() => RaisePropertyChanged(nameof(Channels)));
 
 
             Register<NetworksModifiedMessage>(m =>
@@ -352,6 +357,50 @@ namespace UnIRC.ViewModels
             _namesQueue.Clear();
         }
 
+        private void DisplayEvent(IrcEvent ev)
+        {
+            MessagesReceived.Add(ev);
+        }
+
+        private void DisplayEvent(string message)
+        {
+            IrcEvent ev = IrcEvent.GetEvent(message);
+            ev.InternalMessage = true;
+            MessagesReceived.Add(ev);
+        }
+
+        public async Task SendMessageAsync()
+        {
+            string inputMessage = InputMessage;
+            MessagesSent.Add(inputMessage);
+            CurrentMessageHistoryIndex = MessagesSent.Count;
+            InputMessage = "";
+            await SendMessageAsync(inputMessage);
+        }
+
+        public async Task SendMessageAsync(string message)
+        {
+            //DisplayEvent($"-> {message}");
+            if (!IsConnected)
+            {
+                DisplayEvent("[ Not connected to server. ]");
+                return;
+            }
+
+            try
+            {
+                await Endpoint.SendStringAsync(ConnectionId, message);
+            }
+            catch (Exception ex)
+            {
+                IsConnected = false;
+                DisplayEvent($"[ SendMessageAsync(message) Error: {ex.Message} ]");
+            }
+            IrcEvent ev = IrcEvent.GetEvent($":{Nick}!{UserInfo.EmailAddress} {message}");
+            ev.InternalMessage = true;
+            await HandleIrcEventAsync(ev);
+        }
+
         private async Task WaitForData()
         {
             while (IsConnected)
@@ -386,78 +435,58 @@ namespace UnIRC.ViewModels
                 {
                     IsConnected = false;
                     incomingMessage = $"[ WaitForData() Error: {ex.Message} ]{Environment.NewLine}{ex}";
+                    await Endpoint.DisconnectAsync(ConnectionId);
                 }
                 DisplayEvent(incomingMessage);
             }
         }
 
-        public async Task SendMessageAsync()
-        {
-            string inputMessage = InputMessage;
-            MessagesSent.Add(inputMessage);
-            CurrentMessageHistoryIndex = MessagesSent.Count;
-            InputMessage = "";
-            await SendMessageAsync(inputMessage);
-        }
-
-        public async Task SendMessageAsync(string message)
-        {
-            DisplayEvent($"< {message}");
-            if (!IsConnected)
-            {
-                DisplayEvent($"[ Not connected to server. ]");
-                return;
-            }
-
-            try
-            {
-                await Endpoint.SendStringAsync(ConnectionId, message);
-            }
-            catch (Exception ex)
-            {
-                IsConnected = false;
-                DisplayEvent($"[ SendMessageAsync(message) Error: {ex.Message} ]");
-            }
-        }
-
-        private void DisplayEvent(IrcEvent ev)
-        {
-            MessagesReceived.Add(ev);
-        }
-
-        private void DisplayEvent(string ev)
-        {
-            MessagesReceived.Add(IrcEvent.GetEvent(ev));
-        }
-
         private async Task HandleIrcEventAsync(IrcEvent ev)
         {
-            DisplayEvent(ev);
             using (await _eventProcessingLock.LockAsync())
             {
+                if (ev is IrcChannelModeEvent) await HandleChannelModeEvent((IrcChannelModeEvent) ev);
+                else if (ev is IrcInviteEvent) await HandleInviteEvent((IrcInviteEvent)ev);
+                else if (ev is IrcJoinEvent) await HandleJoinEvent((IrcJoinEvent)ev);
+                else if (ev is IrcKickEvent) await HandleKickEvent((IrcKickEvent)ev);
+                else if (ev is IrcNickEvent) await HandleNickEvent((IrcNickEvent)ev);
+                else if (ev is IrcNamesItemEvent) await HandleNamesItemEvent((IrcNamesItemEvent)ev);
+                else if (ev is IrcNamesEndEvent) await HandleNamesEndEvent((IrcNamesEndEvent)ev);
+                else if (ev is IrcNoticeEvent) await HandleNoticeEvent((IrcNoticeEvent)ev);
+                else if (ev is IrcPartEvent) await HandlePartEvent((IrcPartEvent)ev);
+                else if (ev is IrcPingEvent) await HandlePingEvent((IrcPingEvent)ev);
+                else if (ev is IrcPrivmsgEvent) await HandlePrivmsgEvent((IrcPrivmsgEvent)ev);
+                else if (ev is IrcQuitEvent) await HandleQuitEvent((IrcQuitEvent)ev);
+                else if (ev is IrcUserModeEvent) await HandleUserModeEvent((IrcUserModeEvent)ev);
+                else if (ev is IrcWhoItemEvent) await HandleWhoItemEvent((IrcWhoItemEvent)ev);
+                else if (ev is IrcWhoEndEvent) await HandleWhoEndEvent((IrcWhoEndEvent) ev);
+                else DisplayEvent(ev);
+                /*
                 await new TypeSwitch()
                     .Case<IrcEvent>(e => { })
-                    .Case<IrcChannelModeEvent>(HandleEvent)
-                    .Case<IrcInviteEvent>(HandleEvent)
-                    .Case<IrcJoinEvent>(HandleEvent)
-                    .Case<IrcKickEvent>(HandleEvent)
-                    .Case<IrcNickEvent>(HandleEvent)
-                    .Case<IrcNamesItemEvent>(HandleEvent)
-                    .Case<IrcNamesEndEvent>(HandleEvent)
-                    .Case<IrcNoticeEvent>(HandleEvent)
-                    .Case<IrcPartEvent>(HandleEvent)
-                    .Case<IrcPingEvent>(HandleEvent)
-                    .Case<IrcPrivmsgEvent>(HandleEvent)
-                    .Case<IrcQuitEvent>(HandleEvent)
-                    .Case<IrcUserModeEvent>(HandleEvent)
-                    .Case<IrcWhoItemEvent>(HandleEvent)
-                    .Case<IrcWhoEndEvent>(HandleEvent)
-                    .SwitchAsync(ev);
+                    .Case<IrcChannelModeEvent>(HandleChannelModeEvent)
+                    .Case<IrcInviteEvent>(HandleInviteEvent)
+                    .Case<IrcJoinEvent>(HandleJoinEvent)
+                    .Case<IrcKickEvent>(HandleKickEvent)
+                    .Case<IrcNickEvent>(HandleNickEvent)
+                    .Case<IrcNamesItemEvent>(HandleNamesItemEvent)
+                    .Case<IrcNamesEndEvent>(HandleNamesEndEvent)
+                    .Case<IrcNoticeEvent>(HandleNoticeEvent)
+                    .Case<IrcPartEvent>(HandlePartEvent)
+                    .Case<IrcPingEvent>(HandlePingEvent)
+                    .Case<IrcPrivmsgEvent>(HandlePrivmsgEvent)
+                    .Case<IrcQuitEvent>(HandleQuitEvent)
+                    .Case<IrcUserModeEvent>(HandleUserModeEvent)
+                    .Case<IrcWhoItemEvent>(HandleWhoItemEvent)
+                    .Case<IrcWhoEndEvent>(HandleWhoEndEvent)
+                    .SwitchAsync(ev);//*/
             }
         }
 
-        private async Task HandleEvent(IrcChannelModeEvent ev)
+        private async Task HandleChannelModeEvent(IrcChannelModeEvent ev)
         {
+            if (ev.InternalMessage) return;
+
             string channelName = ev.Channel;
             ChannelViewModel channel = Channels.Where(c => c.IsJoined)
                 .FirstOrDefault(c => c.ChannelName == channelName);
@@ -469,12 +498,14 @@ namespace UnIRC.ViewModels
             channel.Messages.Add(ev);
         }
 
-        private async Task HandleEvent(IrcInviteEvent ev)
+        private async Task HandleInviteEvent(IrcInviteEvent ev)
         {
         }
 
-        private async Task HandleEvent(IrcJoinEvent ev)
+        private async Task HandleJoinEvent(IrcJoinEvent ev)
         {
+            if (ev.InternalMessage) return;
+
             string channelName = ev.Channel;
             ChannelViewModel channel = Channels
                 .FirstOrDefault(c => c.ChannelName == channelName);
@@ -491,8 +522,12 @@ namespace UnIRC.ViewModels
                 }
                 else
                 {
-                    channel = new ChannelViewModel(this, channelName, ev.User);
-                    Channels.Add(channel);
+                    //DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                    //{
+
+                        channel = new ChannelViewModel(this, channelName, ev.User);
+                        Channels.Add(channel);
+                    //});
                 }
             }
             else
@@ -512,8 +547,10 @@ namespace UnIRC.ViewModels
             channel.Messages.Add(ev);
         }
 
-        private async Task HandleEvent(IrcKickEvent ev)
+        private async Task HandleKickEvent(IrcKickEvent ev)
         {
+            if (ev.InternalMessage) return;
+
             string channelName = ev.Channel;
             ChannelViewModel channel = Channels.Where(c => c.IsJoined)
                 .FirstOrDefault(c => c.ChannelName == channelName);
@@ -542,41 +579,55 @@ namespace UnIRC.ViewModels
             channel.Messages.Add(ev);
         }
 
-        private async Task HandleEvent(IrcNamesItemEvent ev)
+        private async Task HandleNamesItemEvent(IrcNamesItemEvent ev)
         {
+            if (ev.InternalMessage) return;
+
             if (!_namesQueue.ContainsKey(ev.Channel))
                 _namesQueue.Add(ev.Channel, new List<IrcUserNamesEntry>());
             _namesQueue[ev.Channel].AddRange(ev.Entries);
+
+            DisplayEvent(ev);
         }
 
-        private async Task HandleEvent(IrcNamesEndEvent ev)
+        private async Task HandleNamesEndEvent(IrcNamesEndEvent ev)
         {
-            string channelName = ev.Channel;
+            if (ev.InternalMessage) return;
 
-            List<IrcUserNamesEntry> entries;
-            if (!_namesQueue.TryGetValue(channelName, out entries))
-                return;
-            _namesQueue[channelName].Clear();
+            string channelName = ev.Channel;
 
             ChannelViewModel channel = Channels.Where(c => c.IsJoined)
                 .FirstOrDefault(c => c.ChannelName == channelName);
             if (channel == null)
                 return;
 
-            // Remove users that have left
-            foreach (IrcUser user in channel.Users
-                .Where(u => entries.All(e => e.Nick != u.Nick)))
-                channel.Users.Remove(user);
-            // Add users who have joined
-            foreach (IrcUserNamesEntry entry in entries
-                .Where(e => channel.Users.All(u => u.Nick != e.Nick)))
-                channel.Users.Add(new IrcUser(entry.Nick));
+            List<IrcUserNamesEntry> entries;
+            if (!_namesQueue.TryGetValue(channelName, out entries))
+                return;
 
-            channel.Messages.Add(ev);
+            IrcUser[] existingUsers = channel.Users.Where(u => entries.Any(e => e.Nick == u.Nick)).ToArray();
+            IrcUserNamesEntry[] newEntries = entries.Where(e => channel.Users.All(u => u.Nick != e.Nick)).ToArray();
+
+            _namesQueue[channelName].Clear();
+
+
+            // Remove users that have left
+            //foreach (IrcUser user in existingUsers)
+                //newList.Remove(user);
+
+            // Add users who have joined
+            List<IrcUser> newList = existingUsers.ToList();
+            newList.AddRange(newEntries.Select(entry => new IrcUser(entry.Nick, null, null, null, null)));
+
+            channel.Users = newList.ToObservable();
+
+            DisplayEvent(ev);
         }
 
-        private async Task HandleEvent(IrcNickEvent ev)
+        private async Task HandleNickEvent(IrcNickEvent ev)
         {
+            if (ev.InternalMessage) return;
+
             if (ev.OldNick == Nick)
             {
                 Nick = ev.NewNick;
@@ -587,6 +638,7 @@ namespace UnIRC.ViewModels
                     channel.Users.Add(new IrcUser(ev.NewNick, user.UserName, user.Host, user.RealName, user.Server));
                     channel.Messages.Add(ev);
                 }
+                DisplayEvent(ev);
             }
             else
             {
@@ -608,9 +660,10 @@ namespace UnIRC.ViewModels
                     return;
                 }
             }
+
         }
 
-        private async Task HandleEvent(IrcNoticeEvent ev)
+        private async Task HandleNoticeEvent(IrcNoticeEvent ev)
         {
             string target = ev.Target;
             if (ev.IsChannelMessage)
@@ -624,10 +677,16 @@ namespace UnIRC.ViewModels
                 }
                 channel.Messages.Add(ev);
             }
+            else
+            {
+                DisplayEvent(ev);
+            }
         }
 
-        private async Task HandleEvent(IrcPartEvent ev)
+        private async Task HandlePartEvent(IrcPartEvent ev)
         {
+            if (ev.InternalMessage) return;
+
             string channelName = ev.Channel;
             string nick = ev.User.Nick;
             ChannelViewModel channel = Channels.Where(c => c.IsJoined)
@@ -653,12 +712,15 @@ namespace UnIRC.ViewModels
             channel.Messages.Add(ev);
         }
 
-        private async Task HandleEvent(IrcPingEvent ev)
+        private async Task HandlePingEvent(IrcPingEvent ev)
         {
+            if (ev.InternalMessage) return;
+
+            DisplayEvent(ev);
             await SendMessageAsync($"PONG :{ev.Content}");
         }
 
-        private async Task HandleEvent(IrcPrivmsgEvent ev)
+        private async Task HandlePrivmsgEvent(IrcPrivmsgEvent ev)
         {
             string target = ev.Target;
             if (ev.IsChannelMessage)
@@ -672,10 +734,16 @@ namespace UnIRC.ViewModels
                 }
                 channel.Messages.Add(ev);
             }
+            else
+            {
+                DisplayEvent(ev);
+            }
         }
 
-        private async Task HandleEvent(IrcQuitEvent ev)
+        private async Task HandleQuitEvent(IrcQuitEvent ev)
         {
+            if (ev.InternalMessage) return;
+
             string nick = ev.User.Nick;
 
             bool found = false;
@@ -695,20 +763,28 @@ namespace UnIRC.ViewModels
             }
         }
 
-        private async Task HandleEvent(IrcUserModeEvent ev)
+        private async Task HandleUserModeEvent(IrcUserModeEvent ev)
         {
+            if (ev.InternalMessage) return;
+            DisplayEvent(ev);
         }
 
-        private async Task HandleEvent(IrcWhoItemEvent ev)
+        private async Task HandleWhoItemEvent(IrcWhoItemEvent ev)
         {
+            if (ev.InternalMessage) return;
+
             IrcUserWhoEntry entry = ev.Entry;
             if (!_whoQueue.ContainsKey(entry.Channel))
                 _whoQueue.Add(entry.Channel, new List<IrcUserWhoEntry>());
             _whoQueue[entry.Channel].Add(entry);
+
+            DisplayEvent(ev);
         }
 
-        private async Task HandleEvent(IrcWhoEndEvent ev)
+        private async Task HandleWhoEndEvent(IrcWhoEndEvent ev)
         {
+            if (ev.InternalMessage) return;
+
             string channelName = ev.Channel;
 
             List<IrcUserWhoEntry> entries;
@@ -723,12 +799,12 @@ namespace UnIRC.ViewModels
 
             foreach (IrcUserWhoEntry entry in entries)
             {
-                var user = channel.Users.FirstOrDefault(u => u.Nick == entry.User.Nick);
+                IrcUser user = channel.Users.FirstOrDefault(u => u.Nick == entry.User.Nick);
                 channel.Users.Remove(user);
                 channel.Users.Add(entry.User);
             }
 
-            channel.Messages.Add(ev);
+            DisplayEvent(ev);
         }
     }
 }

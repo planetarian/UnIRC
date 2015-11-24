@@ -89,6 +89,7 @@ namespace UnIRC.Shared.Models
                 string readString = Reader.ReadString(bytesRead);
                 CurrentReadData += readString;
 
+                await Task.Delay(10);
             }
 #else
             throw new NotImplementedException();

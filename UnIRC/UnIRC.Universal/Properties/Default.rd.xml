@@ -25,6 +25,41 @@
     
     
     <!-- Add your application specific runtime directives here. -->
+    
+        <Type Name="System.Linq.EnumerableExecutor">
+      <Subtypes Activate="Required All" Dynamic="Required All" Serialize="Required All"/>
+    </Type>
+
+    <Type Name="System.Linq.Expressions.Expression">
+      <Subtypes Activate="Required All" Dynamic="Required All" Serialize="Required All"/>
+    </Type>
+    
+    <Namespace Name="System.Linq"
+               Dynamic="Required All" 
+               Activate="Required All"/>
+    <Namespace Name="System.Linq.Expressions"
+               Dynamic="Required All" 
+               Activate="Required All"/>
+    
+    <Assembly Name="System.Private.Reflection.Core" 
+              DoNotOptimize="true"
+              Dynamic="Required All" 
+              Activate="Required All"/>
+   
+    <Assembly Name="System.Linq.Expressions" 
+              DoNotOptimize="true"
+              Dynamic="Required All" 
+              Activate="Required All"/>
+    
+    <Assembly Name="System.Linq" 
+              DoNotOptimize="true"
+              Dynamic="Required All" 
+              Activate="Required All"/>
+    
+    <Assembly Name="System.Linq.Queryable" 
+              DoNotOptimize="true"
+              Dynamic="Required All"  
+              Activate="Required All"/>
 
 
   </Application>

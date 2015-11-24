@@ -18,10 +18,13 @@ namespace UnIRC.IrcEvents
             Sender = m.Prefix;
             Target = m.Parameters[0];
             Message = m.Trailing;
-            IsChannelMessage = Target.Length > 1 && Target[0] == '#';
-            IsServerMessage = String.IsNullOrWhiteSpace(Sender) || (!Sender.Contains("@") && Sender.Contains("."));
 
+            IsChannelMessage = Target.Length > 1 && Target[0] == '#';
+            if (IsChannelMessage) Target = Target.ToLower();
+
+            IsServerMessage = String.IsNullOrWhiteSpace(Sender) || (!Sender.Contains("@") && Sender.Contains("."));
             if (IsServerMessage) return;
+
             SourceUser = new IrcUser(Sender);
 
             ReturnTarget = IsChannelMessage ? Target : SourceUser.Nick;

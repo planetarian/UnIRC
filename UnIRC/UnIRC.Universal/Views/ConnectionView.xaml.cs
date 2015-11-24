@@ -23,6 +23,7 @@ namespace UnIRC.Views
         private double _lastExtentHeight;
         private double _lastViewportHeight;
         private double _lastScrollViewerHeight;
+        private bool _enterPressed;
 
         public ConnectionView()
         {
@@ -37,6 +38,8 @@ namespace UnIRC.Views
             switch (e.Key)
             {
                 case VirtualKey.Enter:
+                    if (_enterPressed) return;
+                    _enterPressed = true;
                     vm.SendMessageCommand.Execute(null);
                     break;
                 case VirtualKey.Up:
@@ -51,8 +54,15 @@ namespace UnIRC.Views
             var vm = DataContext as ConnectionViewModel;
             if (vm == null) return;
 
-            if (e.Key == VirtualKey.Down)
-                vm.NextHistoryMessageCommand.Execute(null);
+            switch (e.Key)
+            {
+                case VirtualKey.Enter:
+                    _enterPressed = false;
+                    break;
+                case VirtualKey.Down:
+                    vm.NextHistoryMessageCommand.Execute(null);
+                    break;
+            }
         }
 
         private void MessagesLoaded(object sender, RoutedEventArgs ev)

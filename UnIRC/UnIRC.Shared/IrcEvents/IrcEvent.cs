@@ -9,9 +9,10 @@ namespace UnIRC.IrcEvents
 
         public DateTime Date { get; set; }
         public IrcMessage IrcMessage { get; set; }
+        public bool InternalMessage { get; set; }
 
         private const string _messageRegexPattern =
-            "^(:(?<prefix>[^ ]+) +)?(?<command>[^ ]+)(?<innerparams>( +[^ ]+)*?)?( +:(?<outerparams>.*))?$";
+            "^(:(?<prefix>[^ ]+) +)?(?<command>[^ ]+)(?<innerparams>( +[^ ]+)*?( +:(?<outerparams>.*))?)?$";
 
         public string FormattedDate => $"[{Date:T}] ";
         public virtual string Output => $"{ToString()}";
@@ -57,6 +58,8 @@ namespace UnIRC.IrcEvents
                     return new IrcQuitEvent(m);
                 case "invite":
                     return new IrcInviteEvent(m);
+                case "ping":
+                    return new IrcPingEvent(m);
                 case "352":
                     return new IrcWhoItemEvent(m);
                 case "315":
@@ -74,16 +77,6 @@ namespace UnIRC.IrcEvents
         public override string ToString()
         {
             return $@"{Type}: {IrcMessage.RawMessage}";
-        }
-    }
-
-    public class IrcPingEvent : IrcEvent
-    {
-        public string Content { get; set; }
-
-        public IrcPingEvent(IrcMessage m) : base(m)
-        {
-            Content = m.Trailing;
         }
     }
 }

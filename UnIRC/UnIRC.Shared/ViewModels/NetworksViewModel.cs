@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
@@ -275,8 +276,15 @@ namespace UnIRC.ViewModels
 
             if (networksJson != null)
             {
-                var networks = JsonConvert.DeserializeObject<List<Network>>(networksJson);
-                Networks = networks.Select(n => new NetworkViewModel(n)).ToObservable();
+                try
+                {
+                    var networks = JsonConvert.DeserializeObject<List<Network>>(networksJson);
+                    networks = networks;
+                    Networks = networks.Select(n => new NetworkViewModel(n)).ToObservable();
+                }
+                catch (Exception ex)
+                {
+                }
 
                 if (Networks != null && selectedNetworkJson != null)
                 {

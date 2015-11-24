@@ -78,6 +78,7 @@ namespace UnIRC
 
             foreach (ListBox listBox in _allMenus.Where(listBox => listBox != list))
             {
+                if (list != ChannelsMenu || (list == ChannelsMenu && listBox != ConnectionsMenu))
                 listBox.SelectedItem = null;
             }
 
@@ -88,9 +89,12 @@ namespace UnIRC
             }
             else if (list == ChannelsMenu)
             {
-                if (_channelPages.ContainsKey(selectedConnection)
-                    && _channelPages[selectedConnection].ContainsKey(selectedChannel))
-                    ContentFrame.Content = _channelPages[selectedConnection][selectedChannel];
+                if (!_channelPages[selectedConnection].ContainsKey(selectedChannel))
+                {
+                    var view = new ChannelView { DataContext = selectedChannel };
+                    _channelPages[selectedConnection].Add(selectedChannel, view);
+                }
+                ContentFrame.Content = _channelPages[selectedConnection][selectedChannel];
             }
             else if (_fixedMenus.Contains(list))
             {

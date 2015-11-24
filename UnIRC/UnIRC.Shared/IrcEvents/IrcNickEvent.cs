@@ -14,7 +14,7 @@ namespace UnIRC.IrcEvents
         {
             User = new IrcUser(m.Prefix);
             OldNick = User.Nick;
-            NewNick = m.Trailing;
+            NewNick = m.Parameters[0].TrimStart(':');
         }
     }
 }

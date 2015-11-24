@@ -114,7 +114,7 @@
                             </Grid.RowDefinitions>
                             <ListBox
                                 x:Name="ConnectionsMenu"
-                                ItemsSource="{Binding Connections}"
+                                ItemsSource="{Binding Connections, UpdateSourceTrigger=PropertyChanged}"
                                 SelectedItem="{Binding SelectedConnection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 SelectionChanged="MenuSelectionChanged">
                                 <ListBox.ItemTemplate>
@@ -139,7 +139,7 @@
                             <Grid DataContext="{Binding MenuSelectedConnection}" Grid.Row="1">
                                 <ListBox
                                     x:Name="ChannelsMenu"
-                                    ItemsSource="{Binding Channels}"
+                                    ItemsSource="{Binding Channels, UpdateSourceTrigger=PropertyChanged}"
                                     SelectedItem="{Binding SelectedChannel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                     SelectionChanged="MenuSelectionChanged">
                                     <ListBox.ItemTemplate>

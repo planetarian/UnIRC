@@ -7,7 +7,7 @@ namespace UnIRC.IrcEvents
 
         public IrcKickEvent(IrcMessage m) : base(m)
         {
-            Channel = m.Parameters[0];
+            Channel = m.Parameters[0].ToLower();
             Kicked = m.Parameters[1].Split(',');
             Reason = m.Trailing;
         }

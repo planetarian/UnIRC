@@ -13,7 +13,7 @@ namespace UnIRC.Shared.Models
         public IrcUserNamesEntry(string nick, string channel, string flags)
         {
             Nick = nick;
-            Channel = channel;
+            Channel = channel.ToLower();
             Flags = flags;
         }
     }

@@ -7,7 +7,7 @@
         public IrcInviteEvent(IrcMessage m) : base(m)
         {
             Invitee = m.Parameters[0];
-            Channel = m.Trailing;
+            Channel = m.Trailing.ToLower();
         }
     }
 }

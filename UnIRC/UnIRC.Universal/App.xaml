@@ -32,7 +32,7 @@
                 <Setter Property="FontFamily" Value="Consolas"/>
             </Style>
             <DataTemplate x:Key="IrcPrivmsgEventConnectionPageTemplate">
-                <TextBlock Text="{Binding TimestampedOutput}" Style="{StaticResource ConnectionPageTemplateStyle}" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding TimestampedOutput}" Style="{StaticResource ConnectionPageTemplateStyle}"/>
             </DataTemplate>
             <DataTemplate x:Key="IrcNickEventConnectionPageTemplate">
                 <TextBlock Text="{Binding TimestampedOutput}" Style="{StaticResource ConnectionPageTemplateStyle}" Foreground="DimGray"/>

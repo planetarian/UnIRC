@@ -14,7 +14,7 @@ namespace UnIRC.Shared.Models
         public IrcUserWhoEntry(IrcUser user, string channel, string flags)
         {
             User = user;
-            Channel = channel;
+            Channel = channel.ToLower();
             Flags = flags;
         }
     }

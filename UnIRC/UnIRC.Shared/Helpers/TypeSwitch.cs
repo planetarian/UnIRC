@@ -12,14 +12,14 @@ namespace UnIRC.Shared.Helpers
         private readonly Dictionary<Type, Func<object, Task>> _matchesAsync
             = new Dictionary<Type, Func<object, Task>>();
 
-        public TypeSwitch Case<T>(Action<T> action)
+        public TypeSwitch Case<T>(Action<T> action) where T : class
         {
-            _matches.Add(typeof(T), x => action((T)x));
+            _matches.Add(typeof(T), x => action(x as T));
             return this;
         }
-        public TypeSwitch Case<T>(Func<T, Task> func)
+        public TypeSwitch Case<T>(Func<T, Task> func) where T : class
         {
-            _matches.Add(typeof(T), x => func((T)x));
+            _matches.Add(typeof(T), x => func(x as T));
             return this;
         }
 
@@ -43,23 +43,6 @@ namespace UnIRC.Shared.Helpers
             else if (_matches.ContainsKey(type))
                 await Task.Run(() => _matches[type](x));
             else throw new KeyNotFoundException();
-        }
-    }
-
-    public class TypeSwitchAsync
-    {
-        private readonly Dictionary<Type, Func<object, Task>> _matches
-            = new Dictionary<Type, Func<object, Task>>();
-
-        public TypeSwitchAsync Case<T>(Func<object, Task> func)
-        {
-            _matches.Add(typeof(T), x => func((T)x));
-            return this;
-        }
-
-        public async Task SwitchAsync(object x)
-        {
-            await _matches[x.GetType()](x);
         }
     }
 }

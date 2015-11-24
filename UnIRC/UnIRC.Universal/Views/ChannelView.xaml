@@ -21,30 +21,36 @@
         <TextBlock Text="{Binding ChannelName}" Margin="10,3" Grid.Row="0"/>
         <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="100"/>
             </Grid.ColumnDefinitions>
 
             <ListBox
                 x:Name="Messages"
                 Grid.Column="0"
-                ItemsSource="{Binding Messages}"
+                ItemsSource="{Binding Messages, UpdateSourceTrigger=PropertyChanged}"
                 Loaded="MessagesLoaded"
                 ItemTemplateSelector="{StaticResource ConnectionPageTemplateSelector}"
-                GotFocus="InputLostFocus" MinWidth="300">
+                GotFocus="InputLostFocus">
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
                         <Setter Property="Padding" Value="2"/>
                     </Style>
                 </ListBox.ItemContainerStyle>
             </ListBox>
+            <Grid Grid.Column="1" Width=".7" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"/>
             <ListBox
-                ItemsSource="{Binding Users}"
+                ItemsSource="{Binding Users, UpdateSourceTrigger=PropertyChanged}"
                 DisplayMemberPath="Nick"
                 GotFocus="InputLostFocus"
-                MaxWidth="100"
-                Grid.Column="2"/>
+                Grid.Column="2">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="4,2"/>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
         </Grid>
         <Grid Grid.Row="5">
             <Grid.ColumnDefinitions>
@@ -54,8 +60,7 @@
             </Grid.ColumnDefinitions>
             <TextBox
                 x:Name="InputBox"
-                Text="{Binding InputMessage, Mode=TwoWay,
-                UpdateSourceTrigger=PropertyChanged}"
+                Text="{Binding InputMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 InputScope="Chat" PlaceholderText="Message" TextWrapping="Wrap"
                 ScrollViewer.VerticalScrollBarVisibility="Auto"
                 KeyUp="MessageBoxKeyUp" KeyDown="MessageBoxKeyDown"

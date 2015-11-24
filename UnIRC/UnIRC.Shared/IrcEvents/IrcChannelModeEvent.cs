@@ -7,7 +7,7 @@
 
         public IrcChannelModeEvent(IrcMessage m) : base(m)
         {
-            Channel = m.Parameters[0];
+            Channel = m.Parameters[0].ToLower();
             Modes = m.Parameters[1];
 
             string optional = m.Parameters.Length == 3 ? m.Parameters[2] : null;

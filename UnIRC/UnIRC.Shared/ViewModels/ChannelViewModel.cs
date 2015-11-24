@@ -100,7 +100,7 @@ namespace UnIRC.ViewModels
             Users.Add(user);
             IsJoined = isJoined;
             
-            SendMessageCommand = GetCommand(async () => await SendMessageToChannel());
+            SendMessageCommand = GetCommand(()=>SendMessageToChannel());
             PrevHistoryMessageCommand = GetCommand(PrevHistoryMessage,
                 () => CurrentMessageHistoryIndex > 0,
                 () => CurrentMessageHistoryIndex);
@@ -125,7 +125,7 @@ namespace UnIRC.ViewModels
             {
                 MessagesSent.Add(CurrentTypedMessage);
                 InputMessage = "";
-            };
+            }
         }
 
         private async Task SendMessageToChannel()
@@ -139,6 +139,7 @@ namespace UnIRC.ViewModels
                 await Connection.SendMessageAsync(inputMessage.Substring(5));
             else
                 await Connection.SendMessageAsync($"PRIVMSG {ChannelName} :{inputMessage}");
+
         }
     }
 }

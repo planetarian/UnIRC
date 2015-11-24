@@ -6,7 +6,7 @@
 
         public IrcPartEvent(IrcMessage m) : base(m)
         {
-            Channel = m.Parameters[0];
+            Channel = m.Parameters[0].ToLower();
             Reason = m.Trailing;
         }
     }
