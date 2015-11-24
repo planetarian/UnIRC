@@ -279,10 +279,9 @@ namespace UnIRC.ViewModels
                 try
                 {
                     var networks = JsonConvert.DeserializeObject<List<Network>>(networksJson);
-                    networks = networks;
                     Networks = networks.Select(n => new NetworkViewModel(n)).ToObservable();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
 

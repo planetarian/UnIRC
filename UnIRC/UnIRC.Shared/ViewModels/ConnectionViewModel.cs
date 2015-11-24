@@ -6,10 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Windows.ApplicationModel.Core;
 using Windows.Networking;
-using Windows.UI.Core;
-using GalaSoft.MvvmLight.Threading;
 using UnIRC.IrcEvents;
 using UnIRC.Models;
 using UnIRC.Shared.Helpers;
@@ -20,9 +17,7 @@ namespace UnIRC.ViewModels
 {
     public class ConnectionViewModel : ViewModelBaseExtended
     {
-        private const int SleepMillis = 10;
-
-        private static int _nextConnectionId = 1;
+        #region ViewModel properties
 
         public int ConnectionId
         {
@@ -159,12 +154,12 @@ namespace UnIRC.ViewModels
         private int _lastSuccessfulPort;
 
 
-        public ObservableCollection<IrcEvent> MessagesReceived
+        public ObservableCollection<IrcEvent> Messages
         {
-            get { return _messagesReceived; }
-            set { Set(ref _messagesReceived, value); }
+            get { return _messages; }
+            set { Set(ref _messages, value); }
         }
-        private ObservableCollection<IrcEvent> _messagesReceived
+        private ObservableCollection<IrcEvent> _messages
             = new ObservableCollection<IrcEvent>();
 
         public List<string> MessagesSent
@@ -213,18 +208,62 @@ namespace UnIRC.ViewModels
         private ChannelViewModel _selectedChannel;
 
 
-        private readonly Dictionary<string, List<IrcUserNamesEntry>> _namesQueue
-            = new Dictionary<string, List<IrcUserNamesEntry>>();
-        private readonly Dictionary<string, List<IrcUserWhoEntry>> _whoQueue
-            = new Dictionary<string, List<IrcUserWhoEntry>>();
+        public bool IsReconnecting
+        {
+            get { return _isReconnecting; }
+            set { Set(ref _isReconnecting, value); }
+        }
+        private bool _isReconnecting;
 
-        private readonly SemaphoreSlim _eventProcessingLock = new SemaphoreSlim(1);
+        public bool IsConnecting
+        {
+            get { return _isConnecting; }
+            set { Set(ref _isConnecting, value); }
+        }
+        private bool _isConnecting;
+
+        public bool ShowDisconnect
+        {
+            get { return _showDisconnect; }
+            set { Set(ref _showDisconnect, value); }
+        }
+        private bool _showDisconnect;
+
+        public bool ShowReconnect
+        {
+            get { return _showReconnect; }
+            set { Set(ref _showReconnect, value); }
+        }
+        private bool _showReconnect;
 
         public ICommand ReconnectCommand { get; set; }
         public ICommand DisconnectCommand { get; set; }
         public ICommand SendMessageCommand { get; set; }
         public ICommand PrevHistoryMessageCommand { get; set; }
         public ICommand NextHistoryMessageCommand { get; set; }
+
+        #endregion ViewModel properties
+
+
+        private readonly Dictionary<string, List<IrcUserNamesEntry>> _namesQueue
+            = new Dictionary<string, List<IrcUserNamesEntry>>();
+        private readonly Dictionary<string, List<IrcUserWhoEntry>> _whoQueue
+            = new Dictionary<string, List<IrcUserWhoEntry>>();
+        private readonly Queue<IrcEvent> _eventQueue
+            = new Queue<IrcEvent>();
+
+        private readonly SemaphoreSlim _eventProcessingLock = new SemaphoreSlim(1);
+        private readonly object _messagesLock = new object();
+
+        private const int _timerMillis = 5;
+        private const int _sleepMillis = 10;
+        private static int _nextConnectionId = 1;
+        private const int _defaultReconnectSeconds = 3;
+        private const int _reconnectInterval = 10;
+        private const bool _reconnectMultiply = false;
+        private int _reconnectSeconds = _defaultReconnectSeconds;
+        private DateTime _nextReconnectDate;
+
 
         public ConnectionViewModel(Network network, Server server, UserInfo userInfo, IConnectionEndpoint endpoint)
         {
@@ -249,11 +288,12 @@ namespace UnIRC.ViewModels
                         CurrentTypedMessage = InputMessage;
                     }
                 });
+            this.OnChanged(x => x.IsConnected, x => x.IsConnecting, x => x.IsReconnecting)
+                .Do(() => ShowDisconnect = IsConnected || IsReconnecting);
             // ReSharper disable once ReturnValueOfPureMethodIsNotUsed
             this.OnChanged(x => x.IsConnected).Do(() => Channels.Select(c => c.IsJoined = false));
             // ReSharper disable once ExplicitCallerInfoArgument
             this.OnCollectionChanged(x => x.Channels).Do(() => RaisePropertyChanged(nameof(Channels)));
-
 
             Register<NetworksModifiedMessage>(m =>
             {
@@ -265,7 +305,7 @@ namespace UnIRC.ViewModels
 
             ReconnectCommand = GetCommand(async () => await Connect(),
                 () => !IsConnected, () => IsConnected);
-            DisconnectCommand = GetCommand(async () => await Disconnect(),
+            DisconnectCommand = GetCommand(async () => await Quit(),
                 () => IsConnected, () => IsConnected);
             SendMessageCommand = GetCommand(async () => await SendMessageAsync(),
                 () => !InputMessage.IsNullOrEmpty(),
@@ -292,7 +332,8 @@ namespace UnIRC.ViewModels
             Nick = DefaultNick;
 
             Endpoint.CreateConnection(ConnectionId);
-
+            
+            Task processTask = ProcessEventsAsync();
             Task connectTask = Connect();
         }
 
@@ -315,8 +356,52 @@ namespace UnIRC.ViewModels
             };
         }
 
+        private async Task ProcessEventsAsync()
+        {
+            while (true)
+            {
+                IrcEvent newEvent = null;
+                lock (_eventProcessingLock)
+                {
+                    if (_eventQueue.Count > 0)
+                        newEvent = _eventQueue.Dequeue();
+                }
+                if (newEvent != null)
+                {
+                    try
+                    {
+                        await HandleIrcEventAsync(newEvent);
+                    }
+                    catch (Exception ex)
+                    {
+                        DisplayEvent("[ Error occurred processing IRC event ]");
+                        DisplayEvent($"[ Event: {newEvent} ]");
+                        DisplayEvent($"Exception: {Environment.NewLine}{ex}");
+                    }
+                }
+
+                if (!IsConnected && IsReconnecting && _nextReconnectDate < DateTime.Now)
+                {
+#pragma warning disable 162
+                    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                    // ReSharper disable once UnreachableCode
+                    int interval = _reconnectMultiply ? _reconnectSeconds*2 : _reconnectSeconds + _reconnectInterval;
+#pragma warning restore 162
+                    _nextReconnectDate = DateTime.Now + TimeSpan.FromSeconds(interval);
+                    await Connect();
+                }
+
+                await Task.Delay(_timerMillis);
+            }
+        }
+
         private async Task Connect()
         {
+            IsReconnecting = false;
+            IsConnecting = true;
+            if (IsConnected)
+                await Disconnect();
+
             DisplayEvent("[ Connecting... ]");
 
             // Copy the data so that it stays current even if we edit the server data in the meantime
@@ -332,6 +417,7 @@ namespace UnIRC.ViewModels
             try {
                 await Endpoint.ConnectAsync(ConnectionId, Address, Port);
                 IsConnected = true;
+                _reconnectSeconds = _defaultReconnectSeconds;
                 if (!Password.IsNullOrEmpty())
                     await SendMessageAsync($"PASS {Password}");
                 await SendMessageAsync($"NICK {DefaultNick}");
@@ -341,32 +427,55 @@ namespace UnIRC.ViewModels
             catch (Exception ex)
             {
                 DisplayEvent($"[ Connect() Error: {ex.Message} ]");
+                IsReconnecting = true;
+                ShowReconnectMessage();
             }
+            IsConnecting = false;
 
             await WaitForData();
         }
 
-        private async Task Disconnect(string message = null)
+        private void ShowReconnectMessage()
+        {
+            if (DateTime.Now < _nextReconnectDate)
+                DisplayEvent($"[ Reconnecting in {_nextReconnectDate - DateTime.Now:mm\\:ss} ]");
+        }
+
+        private async Task Quit(string message = null)
         {
             const string defaultMessage = "User disconnected.";
             await SendMessageAsync($"QUIT :{message ?? defaultMessage}");
-            await Task.Delay(1000);
-            await Endpoint.DisconnectAsync(ConnectionId);
-            IsConnected = false;
+            await Disconnect();
             DisplayEvent("[ Disconnected ]");
-            _namesQueue.Clear();
         }
 
-        private void DisplayEvent(IrcEvent ev)
+        private async Task Disconnect()
         {
-            MessagesReceived.Add(ev);
+            IsConnected = false;
+            await Endpoint.DisconnectAsync(ConnectionId);
+            _namesQueue.Clear();
+            _whoQueue.Clear();
+            lock(_eventProcessingLock)
+                _eventQueue.Clear();
         }
 
         private void DisplayEvent(string message)
         {
             IrcEvent ev = IrcEvent.GetEvent(message);
             ev.InternalMessage = true;
-            MessagesReceived.Add(ev);
+            DisplayEvent(ev);
+        }
+
+        private void DisplayEvent(IrcEvent ev)
+        {
+            lock (_messagesLock)
+                Messages.Add(ev);
+        }
+
+        private void DisplayEvent(IrcEvent ev, ChannelViewModel channel)
+        {
+            lock (_messagesLock)
+                channel.Messages.Add(ev);
         }
 
         public async Task SendMessageAsync()
@@ -396,48 +505,52 @@ namespace UnIRC.ViewModels
                 IsConnected = false;
                 DisplayEvent($"[ SendMessageAsync(message) Error: {ex.Message} ]");
             }
+
             IrcEvent ev = IrcEvent.GetEvent($":{Nick}!{UserInfo.EmailAddress} {message}");
             ev.InternalMessage = true;
-            await HandleIrcEventAsync(ev);
+            lock (_eventProcessingLock)
+                _eventQueue.Enqueue(ev);
         }
 
         private async Task WaitForData()
         {
             while (IsConnected)
             {
-                await Task.Delay(SleepMillis);
+                await Task.Delay(_sleepMillis);
 
-                string incomingMessage;
+                string errorMessage;
                 try
                 {
                     IrcEvent ev = await Endpoint.WaitForEventAsync(ConnectionId);
-                    await HandleIrcEventAsync(ev);
+                    lock (_eventProcessingLock)
+                        _eventQueue.Enqueue(ev);
                     continue;
                 }
-                catch (EndOfStreamException)
+                catch (EndOfStreamException) when (IsConnected)
                 {
-                    IsConnected = false;
-                    incomingMessage = "[ Socket Disconnected ]";
+                    // Server closed the connection
+                    errorMessage = "[ Socket Disconnected ]";
                 }
-                catch (Exception ex) when (ex.HResult == -2147014843)
-                {
-                    // We closed the connection and cleanly disposed the reader
-                    IsConnected = false;
-                    incomingMessage = $"[ Connection closed (socket aborted) ]";
-                }
-                catch (ObjectDisposedException)
+                catch (Exception ex) when (IsConnected && ex.HResult == -2147014843)
                 {
                     // We closed the connection and cleanly disposed the reader
-                    IsConnected = false;
-                    incomingMessage = $"[ Connection closed (object disposed) ]";
+                    errorMessage = "[ Connection closed (socket aborted) ]";
                 }
-                catch (Exception ex)
+                catch (ObjectDisposedException) when (IsConnected)
                 {
-                    IsConnected = false;
-                    incomingMessage = $"[ WaitForData() Error: {ex.Message} ]{Environment.NewLine}{ex}";
-                    await Endpoint.DisconnectAsync(ConnectionId);
+                    // We closed the connection and cleanly disposed the reader
+                    errorMessage = "[ Connection closed (object disposed) ]";
                 }
-                DisplayEvent(incomingMessage);
+                catch (Exception ex) when (IsConnected)
+                {
+                    // All other read errors
+                    errorMessage = $"[ WaitForData() Error: {ex.Message} ]{Environment.NewLine}{ex}";
+                }
+
+                await Disconnect();
+                DisplayEvent(errorMessage);
+                IsReconnecting = true;
+                ShowReconnectMessage();
             }
         }
 
@@ -446,21 +559,21 @@ namespace UnIRC.ViewModels
             using (await _eventProcessingLock.LockAsync())
             {
                 if (ev is IrcChannelModeEvent) await HandleChannelModeEvent((IrcChannelModeEvent) ev);
-                else if (ev is IrcInviteEvent) await HandleInviteEvent((IrcInviteEvent)ev);
-                else if (ev is IrcJoinEvent) await HandleJoinEvent((IrcJoinEvent)ev);
-                else if (ev is IrcKickEvent) await HandleKickEvent((IrcKickEvent)ev);
-                else if (ev is IrcNickEvent) await HandleNickEvent((IrcNickEvent)ev);
-                else if (ev is IrcNamesItemEvent) await HandleNamesItemEvent((IrcNamesItemEvent)ev);
-                else if (ev is IrcNamesEndEvent) await HandleNamesEndEvent((IrcNamesEndEvent)ev);
-                else if (ev is IrcNoticeEvent) await HandleNoticeEvent((IrcNoticeEvent)ev);
-                else if (ev is IrcPartEvent) await HandlePartEvent((IrcPartEvent)ev);
-                else if (ev is IrcPingEvent) await HandlePingEvent((IrcPingEvent)ev);
-                else if (ev is IrcPongEvent) await HandlePongEvent((IrcPongEvent)ev);
-                else if (ev is IrcPrivmsgEvent) await HandlePrivmsgEvent((IrcPrivmsgEvent)ev);
-                else if (ev is IrcQuitEvent) await HandleQuitEvent((IrcQuitEvent)ev);
-                else if (ev is IrcUserModeEvent) await HandleUserModeEvent((IrcUserModeEvent)ev);
-                else if (ev is IrcWelcomeEvent) await HandleWelcomeEvent((IrcWelcomeEvent)ev);
-                else if (ev is IrcWhoItemEvent) await HandleWhoItemEvent((IrcWhoItemEvent)ev);
+                else if (ev is IrcInviteEvent) await HandleInviteEvent((IrcInviteEvent) ev);
+                else if (ev is IrcJoinEvent) await HandleJoinEvent((IrcJoinEvent) ev);
+                else if (ev is IrcKickEvent) await HandleKickEvent((IrcKickEvent) ev);
+                else if (ev is IrcNickEvent) await HandleNickEvent((IrcNickEvent) ev);
+                else if (ev is IrcNamesItemEvent) await HandleNamesItemEvent((IrcNamesItemEvent) ev);
+                else if (ev is IrcNamesEndEvent) await HandleNamesEndEvent((IrcNamesEndEvent) ev);
+                else if (ev is IrcNoticeEvent) await HandleNoticeEvent((IrcNoticeEvent) ev);
+                else if (ev is IrcPartEvent) await HandlePartEvent((IrcPartEvent) ev);
+                else if (ev is IrcPingEvent) await HandlePingEvent((IrcPingEvent) ev);
+                else if (ev is IrcPongEvent) await HandlePongEvent((IrcPongEvent) ev);
+                else if (ev is IrcPrivmsgEvent) await HandlePrivmsgEvent((IrcPrivmsgEvent) ev);
+                else if (ev is IrcQuitEvent) await HandleQuitEvent((IrcQuitEvent) ev);
+                else if (ev is IrcUserModeEvent) await HandleUserModeEvent((IrcUserModeEvent) ev);
+                else if (ev is IrcWelcomeEvent) await HandleWelcomeEvent((IrcWelcomeEvent) ev);
+                else if (ev is IrcWhoItemEvent) await HandleWhoItemEvent((IrcWhoItemEvent) ev);
                 else if (ev is IrcWhoEndEvent) await HandleWhoEndEvent((IrcWhoEndEvent) ev);
                 else DisplayEvent(ev);
                 /*
@@ -484,8 +597,10 @@ namespace UnIRC.ViewModels
                     .SwitchAsync(ev);//*/
             }
         }
-
+        
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         private async Task HandleChannelModeEvent(IrcChannelModeEvent ev)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             if (ev.InternalMessage) return;
 
@@ -497,7 +612,7 @@ namespace UnIRC.ViewModels
                 DisplayEvent("[ Received a MODE message for a channel we're not in! ]");
                 return;
             }
-            channel.Messages.Add(ev);
+            DisplayEvent(ev, channel);
         }
 
         private async Task HandleInviteEvent(IrcInviteEvent ev)
@@ -524,12 +639,8 @@ namespace UnIRC.ViewModels
                 }
                 else
                 {
-                    //DispatcherHelper.CheckBeginInvokeOnUI(() =>
-                    //{
-
-                        channel = new ChannelViewModel(this, channelName, ev.User);
-                        Channels.Add(channel);
-                    //});
+                    channel = new ChannelViewModel(this, channelName, ev.User);
+                    Channels.Add(channel);
                 }
             }
             else
@@ -546,7 +657,7 @@ namespace UnIRC.ViewModels
                 }
                 channel.Users.Add(ev.User);
             }
-            channel.Messages.Add(ev);
+            DisplayEvent(ev, channel);
         }
 
         private async Task HandleKickEvent(IrcKickEvent ev)
@@ -578,7 +689,7 @@ namespace UnIRC.ViewModels
                     channel.Users.Remove(channel.Users.First(u => u.Nick == nick));
                 }
             }
-            channel.Messages.Add(ev);
+            DisplayEvent(ev, channel);
         }
 
         private async Task HandleNamesItemEvent(IrcNamesItemEvent ev)
@@ -638,7 +749,7 @@ namespace UnIRC.ViewModels
                     IrcUser user = channel.Users.First(u => u.Nick == ev.OldNick);
                     channel.Users.Remove(user);
                     channel.Users.Add(new IrcUser(ev.NewNick, user.UserName, user.Host, user.RealName, user.Server));
-                    channel.Messages.Add(ev);
+                    DisplayEvent(ev, channel);
                 }
                 DisplayEvent(ev);
             }
@@ -654,7 +765,7 @@ namespace UnIRC.ViewModels
                     channel.Users.Remove(user);
                     channel.Users.Add(new IrcUser(ev.NewNick, user.UserName,
                         user.Host, user.RealName, user.Server));
-                    channel.Messages.Add(ev);
+                    DisplayEvent(ev, channel);
                 }
                 if (!found)
                 {
@@ -677,7 +788,7 @@ namespace UnIRC.ViewModels
                     DisplayEvent($"[ Received a NOTICE message for {target} which we're not in! ]");
                     return;
                 }
-                channel.Messages.Add(ev);
+                DisplayEvent(ev, channel);
             }
             else
             {
@@ -711,7 +822,7 @@ namespace UnIRC.ViewModels
             {
                 channel.Users.Remove(channel.Users.First(u => u.Nick == nick));
             }
-            channel.Messages.Add(ev);
+            DisplayEvent(ev, channel);
         }
 
         private async Task HandlePingEvent(IrcPingEvent ev)
@@ -739,7 +850,7 @@ namespace UnIRC.ViewModels
                     DisplayEvent($"[ Received a PRIVMSG message for {target} which we're not in! ]");
                     return;
                 }
-                channel.Messages.Add(ev);
+                DisplayEvent(ev, channel);
             }
             else
             {
@@ -761,7 +872,7 @@ namespace UnIRC.ViewModels
                     continue;
                 found = true;
                 channel.Users.Remove(user);
-                channel.Messages.Add(ev);
+                DisplayEvent(ev, channel);
             }
             if (!found)
             {
@@ -818,5 +929,6 @@ namespace UnIRC.ViewModels
 
             DisplayEvent(ev);
         }
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     }
 }

@@ -34,6 +34,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*"/>
                 <ColumnDefinition/>
+                <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <ComboBox
                 ItemsSource="{Binding Servers,
@@ -44,16 +45,15 @@
                 HorizontalAlignment="Stretch" DropDownClosed="ServerSelectorClosed"/>
             <Button
                 Content="Reconnect" Command="{Binding ReconnectCommand}"
-                Visibility="{Binding IsConnected, Converter={StaticResource IsFalseVisibilityConverter}}"
                 HorizontalAlignment="Stretch" Click="InputLostFocus" Grid.Column="1"/>
             <Button
                 Content="Disconnect" Command="{Binding DisconnectCommand}"
-                Visibility="{Binding IsConnected, Converter={StaticResource IsTrueVisibilityConverter}}"
-                HorizontalAlignment="Stretch" Click="InputLostFocus" Grid.Column="1"/>
+                IsEnabled="{Binding ShowDisconnect}"
+                HorizontalAlignment="Stretch" Click="InputLostFocus" Grid.Column="2"/>
         </Grid>
         <ListBox
             x:Name="Messages"
-            ItemsSource="{Binding MessagesReceived}"
+            ItemsSource="{Binding Messages}"
             Grid.Row="4"
             Loaded="MessagesLoaded"
             ItemTemplateSelector="{StaticResource ConnectionPageTemplateSelector}"

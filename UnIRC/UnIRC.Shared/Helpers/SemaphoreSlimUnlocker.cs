@@ -21,11 +21,12 @@ namespace UnIRC.Shared.Helpers
 
     public static class SemaphoreSlimExtensions
     {
-        public static async Task<SemaphoreSlimUnlocker> LockAsync(this SemaphoreSlim semaphore)
+        public static async Task<SemaphoreSlimUnlocker> LockAsync(this SemaphoreSlim semaphore, bool reenter = false)
         {
-            var semaphoreUnlocker = new SemaphoreSlimUnlocker(semaphore);
+            var semaphoreUnlocker = new SemaphoreSlimUnlocker(reenter ? new SemaphoreSlim(1) : semaphore);
             await semaphore.WaitAsync();
             return semaphoreUnlocker;
         }
+        
     }
 }
