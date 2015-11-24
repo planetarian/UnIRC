@@ -27,9 +27,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcNoticeEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcPartEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcPingEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcPongEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcPrivmsgEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcQuitEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcUserModeEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcWelcomeEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcWhoEndEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcWhoItemEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Messages\ConnectMessage.cs" />

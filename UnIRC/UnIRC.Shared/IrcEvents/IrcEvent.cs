@@ -60,6 +60,10 @@ namespace UnIRC.IrcEvents
                     return new IrcInviteEvent(m);
                 case "ping":
                     return new IrcPingEvent(m);
+                case "pong":
+                    return new IrcPongEvent(m);
+                case "001":
+                    return new IrcWelcomeEvent(m);
                 case "352":
                     return new IrcWhoItemEvent(m);
                 case "315":
@@ -79,4 +83,5 @@ namespace UnIRC.IrcEvents
             return $@"{Type}: {IrcMessage.RawMessage}";
         }
     }
+    
 }

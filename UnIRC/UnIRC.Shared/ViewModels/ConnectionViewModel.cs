@@ -455,9 +455,11 @@ namespace UnIRC.ViewModels
                 else if (ev is IrcNoticeEvent) await HandleNoticeEvent((IrcNoticeEvent)ev);
                 else if (ev is IrcPartEvent) await HandlePartEvent((IrcPartEvent)ev);
                 else if (ev is IrcPingEvent) await HandlePingEvent((IrcPingEvent)ev);
+                else if (ev is IrcPongEvent) await HandlePongEvent((IrcPongEvent)ev);
                 else if (ev is IrcPrivmsgEvent) await HandlePrivmsgEvent((IrcPrivmsgEvent)ev);
                 else if (ev is IrcQuitEvent) await HandleQuitEvent((IrcQuitEvent)ev);
                 else if (ev is IrcUserModeEvent) await HandleUserModeEvent((IrcUserModeEvent)ev);
+                else if (ev is IrcWelcomeEvent) await HandleWelcomeEvent((IrcWelcomeEvent)ev);
                 else if (ev is IrcWhoItemEvent) await HandleWhoItemEvent((IrcWhoItemEvent)ev);
                 else if (ev is IrcWhoEndEvent) await HandleWhoEndEvent((IrcWhoEndEvent) ev);
                 else DisplayEvent(ev);
@@ -720,6 +722,11 @@ namespace UnIRC.ViewModels
             await SendMessageAsync($"PONG :{ev.Content}");
         }
 
+        private async Task HandlePongEvent(IrcPongEvent ev)
+        {
+            DisplayEvent(ev);
+        }
+
         private async Task HandlePrivmsgEvent(IrcPrivmsgEvent ev)
         {
             string target = ev.Target;
@@ -767,6 +774,11 @@ namespace UnIRC.ViewModels
         {
             if (ev.InternalMessage) return;
             DisplayEvent(ev);
+        }
+
+        private async Task HandleWelcomeEvent(IrcWelcomeEvent ev)
+        {
+            Nick = ev.Nick;
         }
 
         private async Task HandleWhoItemEvent(IrcWhoItemEvent ev)
