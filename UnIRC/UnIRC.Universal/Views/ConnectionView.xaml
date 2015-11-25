@@ -9,7 +9,8 @@
     xmlns:system="using:System"
     xmlns:viewModels="using:UnIRC.ViewModels"
     xmlns:ircEvents="using:UnIRC.IrcEvents"
-    d:DataContext="{d:DesignInstance viewModels:ConnectionViewModel}">
+    d:DataContext="{d:DesignInstance viewModels:ConnectionViewModel}"
+    >
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

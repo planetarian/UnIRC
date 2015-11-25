@@ -7,7 +7,9 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Windows.ApplicationModel;
 using Windows.Networking;
+using Windows.UI.Xaml;
 using UnIRC.IrcEvents;
 using UnIRC.Models;
 using UnIRC.Shared.Helpers;
@@ -295,6 +297,8 @@ namespace UnIRC.ViewModels
         public ConnectionViewModel(Network network, Server server, UserInfo userInfo,
             IConnectionEndpoint endpoint)
         {
+            Application.Current.Suspending += OnSuspending;
+
             if (IsInDesignModeStatic || IsInDesignMode) return;
 
             ConnectionId = _nextConnectionId++;
@@ -530,6 +534,10 @@ namespace UnIRC.ViewModels
                         _eventQueue.Enqueue(ev);
                     continue;
                 }
+                catch (TimeoutException) when (IsConnected)
+                {
+                    errorMessage = "Connection timed out.";
+                }
                 catch (EndOfStreamException) when (IsConnected)
                 {
                     // Server closed the connection
@@ -560,6 +568,12 @@ namespace UnIRC.ViewModels
                 IsReconnecting = true;
                 ShowReconnectMessage();
             }
+        }
+
+        private async void OnSuspending(object o, SuspendingEventArgs a)
+        {
+            if (IsConnected || IsConnecting)
+                await Quit();
         }
 
         private async Task ProcessEventsAsync()
