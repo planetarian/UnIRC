@@ -33,6 +33,14 @@ namespace UnIRC.ViewModels
         }
         private bool _isJoined;
 
+        public bool WasJoinedBeforeDisconnect
+        {
+            get { return _wasJoinedBeforeDisconnect; }
+            set { Set(ref _wasJoinedBeforeDisconnect, value); }
+        }
+        private bool _wasJoinedBeforeDisconnect;
+
+
         public ObservableCollection<IrcUser> Users
         {
             get { return _users; }
@@ -78,6 +86,14 @@ namespace UnIRC.ViewModels
             set { Set(ref _inputMessage, value); }
         }
         private string _inputMessage;
+
+        public bool IsActive
+        {
+            get { return _isActive; }
+            set { Set(ref _isActive, value); }
+        }
+        private bool _isActive;
+
 
 
         public ICommand SendMessageCommand { get; set; }

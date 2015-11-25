@@ -16,6 +16,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcCreatedEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcErrorEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcEventType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcInviteEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcJoinEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcKickEvent.cs" />
@@ -37,6 +38,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcQuitEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcServerInfoEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcUnknownCommandEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcUserEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcUserModeEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcWelcomeEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcWhoEndEvent.cs" />

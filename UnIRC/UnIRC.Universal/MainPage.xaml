@@ -125,12 +125,18 @@
                                                 <ColumnDefinition/>
                                             </Grid.ColumnDefinitions>
                                             <TextBlock
-                                                Text="&#xE17B;" Style="{StaticResource GlyphStyle}" Grid.Column="0"
+                                                Text="&#xE17B;" Style="{StaticResource GlyphStyle}"
                                                 Visibility="{Binding IsConnected, Converter={StaticResource IsTrueVisibilityConverter}}"/>
-                                            <TextBlock
-                                                Text="&#xE17A;" Style="{StaticResource GlyphStyle}" Grid.Column="0"
-                                                Visibility="{Binding IsConnected, Converter={StaticResource IsFalseVisibilityConverter}}"
-                                                Foreground="Red" FontWeight="Black"/>
+                                            <Grid Visibility="{Binding IsConnected, Converter={StaticResource IsFalseVisibilityConverter}}" Grid.Column="0">
+                                                <TextBlock
+                                                    Text="&#xE17A;" Style="{StaticResource GlyphStyle}" Grid.Column="0"
+                                                    Visibility="{Binding IsConnecting, Converter={StaticResource IsTrueVisibilityConverter}}"
+                                                    Foreground="DarkOrange" FontWeight="Black"/>
+                                                <TextBlock
+                                                    Text="&#xE17A;" Style="{StaticResource GlyphStyle}"
+                                                    Visibility="{Binding IsConnecting, Converter={StaticResource IsFalseVisibilityConverter}}"
+                                                    Foreground="Red" FontWeight="Black"/>
+                                            </Grid>
                                             <TextBlock Text="{Binding DisplayName}" Style="{StaticResource MenuItemStyle}" Grid.Column="1"/>
                                         </Grid>
                                     </DataTemplate>
@@ -154,6 +160,12 @@
                                                 </Grid>
                                                 <Grid Visibility="{Binding IsJoined, Converter={StaticResource IsFalseVisibilityConverter}}" Grid.Column="0">
                                                     <TextBlock
+                                                        Visibility="{Binding WasJoinedBeforeDisconnect, Converter={StaticResource IsTrueVisibilityConverter}}"
+                                                        Text="&#xE91C;" Style="{StaticResource GlyphStyle}"
+                                                        Foreground="DarkOrange" FontWeight="Black"/>
+
+                                                    <TextBlock
+                                                        Visibility="{Binding WasJoinedBeforeDisconnect, Converter={StaticResource IsFalseVisibilityConverter}}"
                                                         Text="&#xE91C;" Style="{StaticResource GlyphStyle}"
                                                         Foreground="Red" FontWeight="Black"/>
                                                 </Grid>

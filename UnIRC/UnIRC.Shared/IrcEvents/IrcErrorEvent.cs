@@ -4,7 +4,7 @@
     {
         public string Message { get; set; }
 
-        public override string Output => $"[ ERROR: {Message} ]";
+        public override string Output => $"ERROR: {Message}";
 
         public IrcErrorEvent(IrcMessage m) : base(m)
         {

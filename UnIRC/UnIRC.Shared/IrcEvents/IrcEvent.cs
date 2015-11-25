@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Text.RegularExpressions;
-using Windows.Devices.AllJoyn;
+using UnIRC.Shared.Helpers;
 using UnIRC.Shared.IrcEvents;
 
 namespace UnIRC.IrcEvents
@@ -11,7 +10,7 @@ namespace UnIRC.IrcEvents
 
         public DateTime Date { get; set; }
         public IrcMessage IrcMessage { get; set; }
-        public bool InternalMessage { get; set; }
+        public IrcEventType EventType { get; set; }
 
         public string FormattedDate => $"[{Date:T}] ";
         public virtual string Output => $"{ToString()}";
@@ -29,6 +28,8 @@ namespace UnIRC.IrcEvents
 
             switch (m.Command.ToLower())
             {
+                case "user":
+                    return new IrcUserEvent(m);
                 case "mode":
                     return IrcModeEvent.GetEvent(m);
                 case "privmsg":
@@ -79,11 +80,16 @@ namespace UnIRC.IrcEvents
                     return new IrcEvent(m);
             }
         }
-
-
+        
         public override string ToString()
         {
-            return $@"{Type}: {IrcMessage.RawMessage}";
+            string output = IrcMessage.Command;
+            if (!IrcMessage.ParameterString.IsNullOrEmpty())
+                output += " " + IrcMessage.ParameterString;
+            if (!IrcMessage.Trailing.IsNullOrEmpty())
+                output += " :" + IrcMessage.Trailing;
+
+            return $@"{Type}: {output}";
         }
     }
 }

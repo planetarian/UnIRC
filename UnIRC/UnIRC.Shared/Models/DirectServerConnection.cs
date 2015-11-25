@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using UnIRC.IrcEvents;
+using UnIRC.Shared.IrcEvents;
 using UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding;
 #if WINDOWS_UWP
 using Windows.Networking;
@@ -74,7 +75,9 @@ namespace UnIRC.Shared.Models
                 {
                     string message = CurrentReadData.Substring(0, breakIndex);
                     CurrentReadData = CurrentReadData.Substring(breakIndex + nl.Length);
-                    return IrcEvent.GetEvent(message);
+                    IrcEvent ev = IrcEvent.GetEvent(message);
+                    ev.EventType = IrcEventType.FromServer;
+                    return ev;
                 }
 
                 uint bytesRead = await Reader.LoadAsync(bufferLength);
