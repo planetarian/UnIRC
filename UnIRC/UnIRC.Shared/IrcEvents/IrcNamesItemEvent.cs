@@ -11,6 +11,8 @@ namespace UnIRC.IrcEvents
         public string Channel { get; private set; }
         public List<IrcUserNamesEntry> Entries { get; private set; }
 
+        public override string Output => $"{Channel} {IrcMessage.Trailing}";
+
         private const string _namesRegex = @"^(?<prefix>[^a-zA-Z0-9-`^{}\[\]\\])?(?<nick>.+)$";
 
         public IrcNamesItemEvent(IrcMessage m) : base(m)

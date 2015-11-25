@@ -9,7 +9,9 @@ namespace UnIRC.IrcEvents
 
         public IrcChannelEvent(IrcMessage m) : base(m)
         {
-            User = new IrcUser(m.Prefix);
+            IrcUser user;
+            IrcUser.TryGetUser(m.Prefix, out user);
+            User = user;
         }
     }
 }

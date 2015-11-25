@@ -24,20 +24,22 @@ namespace UnIRC.Models
             Server = server;
         }
 
-        public IrcUser(string userFormatted, string realName = null, string server = null)
+        public static bool TryGetUser(string userFormatted, out IrcUser user, string realName = null, string server = null)
         {
+            user = null;
             if (String.IsNullOrWhiteSpace(userFormatted))
                 throw new InvalidOperationException("No user provided.");
 
-            Match match = Regex.Match(userFormatted, @"^(?<nick>[^!]+)!(?<user>[^@]+)@(?<host>.+)$", RegexOptions.Compiled);
+            Match match = Regex.Match(userFormatted,
+                @"^(?<nick>[^!]+)!(?<user>[^@]+)@(?<host>.+)$", RegexOptions.Compiled);
             if (!match.Success)
-                throw new InvalidOperationException("Invalid user format.");
+                return false;
 
-            Nick = match.Groups["nick"].Value;
-            UserName = match.Groups["user"].Value;
-            Host = match.Groups["host"].Value;
-            RealName = realName;
-            Server = server;
+            string nick = match.Groups["nick"].Value;
+            string userName = match.Groups["user"].Value;
+            string host = match.Groups["host"].Value;
+            user = new IrcUser(nick, userName, host, realName, server);
+            return true;
         }
 
     }

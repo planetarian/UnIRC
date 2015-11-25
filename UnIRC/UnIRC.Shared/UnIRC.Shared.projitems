@@ -13,6 +13,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\CollectionChangedSubscriber.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\TypeSwitch.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcChannelEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcCreatedEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcErrorEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcInviteEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcJoinEvent.cs" />
@@ -21,6 +23,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcChannelModeEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcMessageEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcModeEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcMotdBeginEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcMotdEndEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcMotdEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcNamesEndEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcNamesItemEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcNickEvent.cs" />
@@ -30,10 +35,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcPongEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcPrivmsgEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcQuitEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcServerInfoEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcUnknownCommandEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcUserModeEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcWelcomeEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcWhoEndEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcWhoItemEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcYourHostEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Messages\ConnectMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Messages\NetworksModifiedMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\DirectServerConnection.cs" />

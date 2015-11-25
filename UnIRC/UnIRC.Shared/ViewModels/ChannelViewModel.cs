@@ -64,7 +64,7 @@ namespace UnIRC.ViewModels
             set { Set(ref _currentMessageHistoryIndex, value); }
         }
         private int _currentMessageHistoryIndex;
-
+        
         public string CurrentTypedMessage
         {
             get { return _currentTypedMessage; }

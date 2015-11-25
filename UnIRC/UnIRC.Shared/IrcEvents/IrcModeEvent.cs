@@ -1,13 +1,21 @@
-﻿namespace UnIRC.IrcEvents
+﻿using UnIRC.Models;
+
+namespace UnIRC.IrcEvents
 {
     public abstract class IrcModeEvent : IrcEvent
     {
         public string Sender { get; protected set; }
+        public IrcUser User { get; protected set; }
         public string Modes { get; protected set; }
+        
 
         protected IrcModeEvent(IrcMessage m) : base(m)
         {
             Sender = m.Prefix;
+            IrcUser user;
+            IrcUser.TryGetUser(Sender, out user);
+
+            User = user;
         }
 
         public static IrcModeEvent GetEvent(IrcMessage m)

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
+using Windows.Devices.AllJoyn;
+using UnIRC.Shared.IrcEvents;
 
 namespace UnIRC.IrcEvents
 {
@@ -11,13 +13,9 @@ namespace UnIRC.IrcEvents
         public IrcMessage IrcMessage { get; set; }
         public bool InternalMessage { get; set; }
 
-        private const string _messageRegexPattern =
-            "^(:(?<prefix>[^ ]+) +)?(?<command>[^ ]+)(?<innerparams>( +[^ ]+)*?( +:(?<outerparams>.*))?)?$";
-
         public string FormattedDate => $"[{Date:T}] ";
         public virtual string Output => $"{ToString()}";
         public string TimestampedOutput => $"{FormattedDate}{Output}";
-
 
         public IrcEvent(IrcMessage ircMessage)
         {
@@ -27,18 +25,9 @@ namespace UnIRC.IrcEvents
 
         public static IrcEvent GetEvent(string rawData)
         {
-            Match match = Regex.Match(rawData, _messageRegexPattern, RegexOptions.Compiled);
-            if (!match.Success)
-                throw new InvalidOperationException("IRCMessage data invalid.");
+            var m = new IrcMessage(rawData);//, prefix, command, parameters, trailing);
 
-            string prefix = match.Groups["prefix"].Value;
-            string command = match.Groups["command"].Value;
-            string[] parameters = match.Groups["innerparams"].Value
-                .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            string trailing = match.Groups["outerparams"].Value;
-            var m = new IrcMessage(rawData, prefix, command, parameters, trailing);
-
-            switch (command.ToLower())
+            switch (m.Command.ToLower())
             {
                 case "mode":
                     return IrcModeEvent.GetEvent(m);
@@ -64,6 +53,12 @@ namespace UnIRC.IrcEvents
                     return new IrcPongEvent(m);
                 case "001":
                     return new IrcWelcomeEvent(m);
+                case "002":
+                    return new IrcYourHostEvent(m);
+                case "003":
+                    return new IrcCreatedEvent(m);
+                case "004":
+                    return new IrcServerInfoEvent(m);
                 case "352":
                     return new IrcWhoItemEvent(m);
                 case "315":
@@ -72,6 +67,14 @@ namespace UnIRC.IrcEvents
                     return new IrcNamesItemEvent(m);
                 case "366":
                     return new IrcNamesEndEvent(m);
+                case "372":
+                    return new IrcMotdEvent(m);
+                case "375":
+                    return new IrcMotdBeginEvent(m);
+                case "376":
+                    return new IrcMotdEndEvent(m);
+                case "error":
+                    return new IrcErrorEvent(m);
                 default:
                     return new IrcEvent(m);
             }
@@ -83,5 +86,4 @@ namespace UnIRC.IrcEvents
             return $@"{Type}: {IrcMessage.RawMessage}";
         }
     }
-    
 }

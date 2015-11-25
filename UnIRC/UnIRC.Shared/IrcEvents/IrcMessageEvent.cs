@@ -25,7 +25,9 @@ namespace UnIRC.IrcEvents
             IsServerMessage = String.IsNullOrWhiteSpace(Sender) || (!Sender.Contains("@") && Sender.Contains("."));
             if (IsServerMessage) return;
 
-            SourceUser = new IrcUser(Sender);
+            IrcUser user;
+            IrcUser.TryGetUser(Sender, out user);
+            SourceUser = user;
 
             ReturnTarget = IsChannelMessage ? Target : SourceUser.Nick;
         }

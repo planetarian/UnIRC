@@ -35,19 +35,54 @@
                 <TextBlock Text="{Binding TimestampedOutput}" Style="{StaticResource ConnectionPageTemplateStyle}"/>
             </DataTemplate>
             <DataTemplate x:Key="IrcNickEventConnectionPageTemplate">
-                <TextBlock Text="{Binding TimestampedOutput}" Style="{StaticResource ConnectionPageTemplateStyle}" Foreground="DimGray"/>
+                <TextBlock
+                    Style="{StaticResource ConnectionPageTemplateStyle}"
+                    Text="{Binding TimestampedOutput}" Foreground="DimGray"/>
             </DataTemplate>
             <DataTemplate x:Key="IrcUserModeEventConnectionPageTemplate">
-                <TextBlock Text="{Binding TimestampedOutput}" Style="{StaticResource ConnectionPageTemplateStyle}" Foreground="DimGray"/>
+                <TextBlock
+                    Style="{StaticResource ConnectionPageTemplateStyle}"
+                    Text="{Binding TimestampedOutput}" Foreground="DimGray"/>
             </DataTemplate>
             <DataTemplate x:Key="IrcChannelModeEventConnectionPageTemplate">
-                <TextBlock Text="{Binding TimestampedOutput}" Style="{StaticResource ConnectionPageTemplateStyle}" Foreground="DimGray"/>
+                <TextBlock
+                    Style="{StaticResource ConnectionPageTemplateStyle}"
+                    Text="{Binding TimestampedOutput}" Foreground="DimGray"/>
             </DataTemplate>
             <DataTemplate x:Key="IrcNoticeEventConnectionPageTemplate">
-                <TextBlock Text="{Binding TimestampedOutput}" Style="{StaticResource ConnectionPageTemplateStyle}" Foreground="ForestGreen"/>
+                <TextBlock
+                    Style="{StaticResource ConnectionPageTemplateStyle}"
+                    Text="{Binding TimestampedOutput}" Foreground="ForestGreen"/>
+            </DataTemplate>
+            <DataTemplate x:Key="IrcJoinEventConnectionPageTemplate">
+                <TextBlock
+                    Style="{StaticResource ConnectionPageTemplateStyle}"
+                    Text="{Binding TimestampedOutput}" Foreground="Teal"/>
+            </DataTemplate>
+            <DataTemplate x:Key="IrcPartEventConnectionPageTemplate">
+                <TextBlock
+                    Style="{StaticResource ConnectionPageTemplateStyle}"
+                    Text="{Binding TimestampedOutput}" Foreground="DarkRed"/>
+            </DataTemplate>
+            <DataTemplate x:Key="IrcQuitEventConnectionPageTemplate">
+                <TextBlock
+                    Style="{StaticResource ConnectionPageTemplateStyle}"
+                    Text="{Binding TimestampedOutput}" Foreground="DarkRed"/>
+            </DataTemplate>
+            <DataTemplate x:Key="IrcKickEventConnectionPageTemplate">
+                <TextBlock
+                    Style="{StaticResource ConnectionPageTemplateStyle}"
+                    Text="{Binding TimestampedOutput}" Foreground="Red"/>
+            </DataTemplate>
+            <DataTemplate x:Key="IrcErrorEventConnectionPageTemplate">
+                <TextBlock
+                    Style="{StaticResource ConnectionPageTemplateStyle}"
+                    Text="{Binding TimestampedOutput}" FontWeight="SemiBold" Foreground="Red"/>
             </DataTemplate>
             <DataTemplate x:Key="IrcEventConnectionPageTemplate">
-                <TextBlock Text="{Binding TimestampedOutput}" Style="{StaticResource ConnectionPageTemplateStyle}" Foreground="Gray"/>
+                <TextBlock
+                    Style="{StaticResource ConnectionPageTemplateStyle}"
+                    Text="{Binding TimestampedOutput}" Foreground="Gray"/>
             </DataTemplate>
 
         </ResourceDictionary>

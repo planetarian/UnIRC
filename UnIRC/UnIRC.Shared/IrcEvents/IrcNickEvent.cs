@@ -12,7 +12,10 @@ namespace UnIRC.IrcEvents
 
         public IrcNickEvent(IrcMessage m) : base(m)
         {
-            User = new IrcUser(m.Prefix);
+            IrcUser user;
+            IrcUser.TryGetUser(m.Prefix, out user);
+            User = user;
+
             OldNick = User.Nick;
             NewNick = m.Parameters[0].TrimStart(':');
         }
