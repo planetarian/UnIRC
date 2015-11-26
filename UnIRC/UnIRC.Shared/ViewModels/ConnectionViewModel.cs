@@ -630,16 +630,16 @@ namespace UnIRC.ViewModels
                 catch (Exception ex) when (ex.HResult == -2147014843 && (IsConnected || IsConnecting))
                 {
                     // We closed the connection and cleanly disposed the reader
-                    errorMessage = "Connection closed (socket aborted)";
+                    errorMessage = $"Connection closed (socket aborted) {ex}";
                 }
-                catch (ObjectDisposedException) when (IsConnected || IsConnecting)
+                catch (ObjectDisposedException ex) when (IsConnected || IsConnecting)
                 {
                     // We closed the connection and cleanly disposed the reader
-                    errorMessage = "Connection closed (object disposed)";
+                    errorMessage = $"Connection closed (object disposed) {ex}";
                 }
                 catch (COMException ex) when (IsConnected || IsConnecting)
                 {
-                    errorMessage = $"Thread ended. {ex.Message}";
+                    errorMessage = $"Thread ended. {ex}";
                 }
                 catch (Exception ex) when (IsConnected || IsConnecting)
                 {
@@ -648,7 +648,7 @@ namespace UnIRC.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    errorMessage = $"WaitForData() caught while not connected: {ex.GetType().FullName}";
+                    errorMessage = $"WaitForData() caught while not connected: {ex}";
                     await ShowError(errorMessage);
                     return;
                 }
