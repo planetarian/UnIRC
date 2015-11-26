@@ -232,7 +232,16 @@ namespace UnIRC.ViewModels
             set { Set(ref _isConnectionOpen, value); }
         }
         private bool _isConnectionOpen;
-        
+
+        public bool CanDisconnect
+        {
+            get { return _canDisconnect; }
+            set { Set(ref _canDisconnect, value); }
+        }
+        private bool _canDisconnect;
+
+
+
         public ObservableCollection<string> Motd
         {
             get { return _motd; }
@@ -255,6 +264,7 @@ namespace UnIRC.ViewModels
         public ICommand SendMessageCommand { get; set; }
         public ICommand PrevHistoryMessageCommand { get; set; }
         public ICommand NextHistoryMessageCommand { get; set; }
+        public ICommand CancelReconnectCommand { get; set; }
 
         #endregion ViewModel properties
 
@@ -274,7 +284,7 @@ namespace UnIRC.ViewModels
         private const int _sleepMillis = 10;
         private static int _nextConnectionId = 1;
         private const int _defaultReconnectSeconds = 3;
-        private const int _reconnectInterval = 10;
+        private const int _reconnectAddInterval = 10;
         private const bool _reconnectMultiply = false;
         private int _reconnectSeconds = _defaultReconnectSeconds;
         private DateTime _nextReconnectDate;
@@ -292,6 +302,8 @@ namespace UnIRC.ViewModels
 
             ConnectionId = _nextConnectionId++;
 
+            this.OnChanged(x => x.IsConnectionOpen, x => x.IsConnected, x => x.IsConnecting, x => x.IsReconnecting)
+                .Do(() => CanDisconnect = IsConnecting || IsConnectionOpen || IsConnected);
             this.OnChanged(x => x.Network, x => x.Nick)
                 .Do(() => DisplayName = $"{Network?.Name} ({Nick})");
             this.OnChanged(x => x.InputMessage).Do(
@@ -321,8 +333,9 @@ namespace UnIRC.ViewModels
             });
 
             ReconnectCommand = GetCommand(async () => await Reconnect());
+            CancelReconnectCommand = GetCommand(async () => await CancelReconnect());
             DisconnectCommand = GetCommand(async () => await Quit(),
-                () => IsConnected, () => IsConnected);
+                () => CanDisconnect, () => CanDisconnect);
             SendMessageCommand = GetCommand(async () => await SendMessageAsync(),
                 () => !InputMessage.IsNullOrEmpty(),
                 () => InputMessage);
@@ -350,7 +363,59 @@ namespace UnIRC.ViewModels
             Endpoint.CreateConnection(ConnectionId);
             
             Task processTask = ProcessEventsAsync();
-            Task connectTask = Connect();
+            IsReconnecting = true;
+        }
+
+        private async Task ProcessEventsAsync()
+        {
+            while (true)
+            {
+                await Task.Delay(_timerMillis);
+
+                if (!IsConnected && !IsConnecting && IsReconnecting && _nextReconnectDate < DateTime.Now)
+                {
+#pragma warning disable 162
+                    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                    // ReSharper disable once UnreachableCode
+                    _reconnectSeconds = _reconnectMultiply ? _reconnectSeconds * 2 : _reconnectSeconds + _reconnectAddInterval;
+#pragma warning restore 162
+                    _nextReconnectDate = DateTime.Now + TimeSpan.FromSeconds(_reconnectSeconds);
+                    // ReSharper disable once UnusedVariable
+                    Task connectTask = Connect();
+                    continue;
+                }
+
+                IrcEvent newEvent = null;
+                lock (_eventProcessingLock)
+                {
+                    if (_eventQueue.Count > 0)
+                        newEvent = _eventQueue.Dequeue();
+                }
+                if (newEvent != null)
+                {
+                    try
+                    {
+                        await HandleIrcEventAsync(newEvent);
+                    }
+                    catch (InvalidDataException)
+                    {
+                        await ShowError($"IRC message has invalid format: {newEvent}");
+                    }
+                    catch (Exception ex)
+                    {
+                        await ShowError("Error occurred processing IRC event");
+                        await ShowError($"Event: {newEvent}");
+                        await ShowError($"Exception: {Environment.NewLine}{ex}");
+                    }
+                }
+
+                if (_tryReclaimNick && IsConnected && _nextNickReclaimDate < DateTime.Now)
+                {
+                    _nextNickReclaimDate = DateTime.Now + TimeSpan.FromSeconds(_nickReclaimRetrySeconds);
+                    await SendMessageAsync($"NICK {DefaultNick}");
+                }
+
+            }
         }
 
         private void PrevHistoryMessage()
@@ -374,16 +439,26 @@ namespace UnIRC.ViewModels
 
         private async Task Reconnect()
         {
-            IsReconnecting = true;
-            if (IsConnectionOpen || IsConnecting)
-                await Disconnect();
+            if (!IsConnecting && IsReconnecting)
+            {
+                _nextReconnectDate = DateTime.Now;
+            }
+            else
+            {
+                if (IsConnectionOpen || IsConnecting)
+                    await Disconnect();
+                IsReconnecting = true;
+                ShowReconnectMessage();
+            }
         }
 
         private async Task Connect()
         {
-            IsReconnecting = false;
+            if (IsConnecting) return;
+
             IsConnecting = true;
-            if (IsConnected)
+            IsReconnecting = false;
+            if (IsConnectionOpen)
                 await Disconnect();
 
             DisplayEvent("Connecting...");
@@ -395,11 +470,15 @@ namespace UnIRC.ViewModels
             if (LastSuccessfulPort == 0)
             {
                 IEnumerable<int> allPorts = Server.AllPorts.ToArray();
-                Port = allPorts.Last() <= LastSuccessfulPort ? allPorts.First() : allPorts.FirstOrDefault(p => p > LastSuccessfulPort);
+                Port = allPorts.Last() <= LastSuccessfulPort
+                    ? allPorts.First()
+                    : allPorts.FirstOrDefault(p => p > LastSuccessfulPort);
             }
 
-            try {
+            try
+            {
                 await Endpoint.ConnectAsync(ConnectionId, Address, Port);
+
                 IsConnectionOpen = true;
                 _reconnectSeconds = _defaultReconnectSeconds;
                 if (!Password.IsNullOrEmpty())
@@ -410,9 +489,12 @@ namespace UnIRC.ViewModels
             }
             catch (Exception ex)
             {
-                DisplayEvent($"Connect() Error: {ex.Message}");
+                if (!IsConnecting) return; // we disconnected ourselves
+                await ShowError($"Connect() Error: {ex.Message}");
+                await Disconnect();
                 IsReconnecting = true;
                 ShowReconnectMessage();
+                return;
             }
 
             await WaitForData();
@@ -424,10 +506,18 @@ namespace UnIRC.ViewModels
                 DisplayEvent($"Reconnecting in {_nextReconnectDate - DateTime.Now:mm\\:ss}");
         }
 
+        private async Task CancelReconnect()
+        {
+            IsReconnecting = false;
+            await Disconnect();
+            DisplayEvent("Reconnect canceled.");
+        }
+
         private async Task Quit(string message = null)
         {
             const string defaultMessage = "User disconnected.";
-            await SendMessageAsync($"QUIT :{message ?? defaultMessage}");
+            if (IsConnectionOpen)
+                await SendMessageAsync($"QUIT :{message ?? defaultMessage}");
             await Disconnect();
         }
 
@@ -560,7 +650,7 @@ namespace UnIRC.ViewModels
                 {
                     errorMessage = $"WaitForData() caught while not connected: {ex.GetType().FullName}";
                     await ShowError(errorMessage);
-                    continue;
+                    return;
                 }
 
                 await ShowError(errorMessage);
@@ -570,6 +660,7 @@ namespace UnIRC.ViewModels
                     IsReconnecting = true;
                     ShowReconnectMessage();
                 }
+                return;
             }
         }
 
@@ -577,56 +668,6 @@ namespace UnIRC.ViewModels
         {
             if (IsConnected || IsConnecting)
                 await Quit();
-        }
-
-        private async Task ProcessEventsAsync()
-        {
-            while (true)
-            {
-                IrcEvent newEvent = null;
-                lock (_eventProcessingLock)
-                {
-                    if (_eventQueue.Count > 0)
-                        newEvent = _eventQueue.Dequeue();
-                }
-                if (newEvent != null)
-                {
-                    try
-                    {
-                        await HandleIrcEventAsync(newEvent);
-                    }
-                    catch (InvalidDataException)
-                    {
-                        await ShowError($"IRC message has invalid format: {newEvent}");
-                    }
-                    catch (Exception ex)
-                    {
-                        await ShowError("Error occurred processing IRC event");
-                        await ShowError($"Event: {newEvent}");
-                        await ShowError($"Exception: {Environment.NewLine}{ex}");
-                    }
-                }
-
-                if (!IsConnected && !IsConnecting && IsReconnecting && _nextReconnectDate < DateTime.Now)
-                {
-#pragma warning disable 162
-                    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-                    // ReSharper disable once UnreachableCode
-                    int interval = _reconnectMultiply ? _reconnectSeconds*2 : _reconnectSeconds + _reconnectInterval;
-#pragma warning restore 162
-                    _nextReconnectDate = DateTime.Now + TimeSpan.FromSeconds(interval);
-                    // ReSharper disable once UnusedVariable
-                    Task connectTask = Connect();
-                }
-
-                if (_tryReclaimNick && IsConnected &&  _nextNickReclaimDate < DateTime.Now)
-                {
-                    _nextNickReclaimDate = DateTime.Now + TimeSpan.FromSeconds(_nickReclaimRetrySeconds);
-                    await SendMessageAsync($"NICK {DefaultNick}");
-                }
-
-                await Task.Delay(_timerMillis);
-            }
         }
 
         private async Task HandleIrcEventAsync(IrcEvent ev)

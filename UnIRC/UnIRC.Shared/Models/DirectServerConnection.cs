@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using UnIRC.IrcEvents;
+using UnIRC.Shared.Helpers;
 using UnIRC.Shared.IrcEvents;
 using UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding;
 #if WINDOWS_UWP
@@ -27,14 +29,28 @@ namespace UnIRC.Shared.Models
 #endif
         public bool ConnectionOpen { get; set; }
         public string CurrentReadData { get; set; } = "";
+        private int _connectTimeoutSeconds = 20;
+        private int _readTimeoutSeconds = 60*5;
+        private int _sendTimeoutSeconds = 60;
 
         public async Task ConnectAsync(string hostname, int port)
         {
 #if WINDOWS_UWP
             ConnectionOpen = true;
-            Socket = new StreamSocket();
             var targetHostname = new HostName(hostname);
-            await Socket.ConnectAsync(targetHostname, port.ToString());
+            Socket = new StreamSocket();
+
+            try
+            {
+                await Socket.ConnectAsync(targetHostname, port.ToString())
+                    .WithTimeout(_connectTimeoutSeconds);
+            }
+            catch (TaskCanceledException)
+            {
+                Socket.Dispose();
+                throw new TimeoutException("Socket connection timed out.");
+            }
+
             Reader = new DataReader(Socket.InputStream)
             {
                 InputStreamOptions = InputStreamOptions.Partial,
@@ -49,15 +65,39 @@ namespace UnIRC.Shared.Models
         public async Task DisconnectAsync()
         {
 #if WINDOWS_UWP
-            await Socket.CancelIOAsync();
-            Writer.DetachStream();
-            Writer.Dispose();
-            Reader.DetachStream();
-            Reader.Dispose();
-            Socket.Dispose();
-            Socket = null;
-            CurrentReadData = "";
-            ConnectionOpen = false;
+            try
+            {
+                if (Socket != null)
+                {
+                    try
+                    {
+                        await Socket.CancelIOAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        // object already closed
+                    }
+                    if (Writer != null)
+                    {
+                        Writer.DetachStream();
+                        Writer.Dispose();
+                    }
+                    if (Reader != null)
+                    {
+                        Reader.DetachStream();
+                        Reader.Dispose();
+                    }
+                    Socket.Dispose();
+                    Socket = null;
+                }
+                CurrentReadData = "";
+                ConnectionOpen = false;
+            }
+            catch (Exception ex)
+            {
+                
+            }
+            await Task.Delay(10);
 #else
             throw new NotImplementedException();
 #endif
@@ -80,7 +120,16 @@ namespace UnIRC.Shared.Models
                     return ev;
                 }
 
-                uint bytesRead = await Reader.LoadAsync(bufferLength);
+                uint bytesRead;
+                try
+                {
+                    bytesRead = await Reader.LoadAsync(bufferLength).WithTimeout(_readTimeoutSeconds);
+                }
+                catch (TaskCanceledException)
+                {
+                    throw new TimeoutException("Socket connection timed out.");
+                }
+
                 if (bytesRead == 0)
                 {
                     if (CurrentReadData.Length > 0)
@@ -103,11 +152,17 @@ namespace UnIRC.Shared.Models
         {
 #if WINDOWS_UWP
             Writer.WriteString(data + "\r\n");
-            await Writer.StoreAsync();
+            try
+            {
+                await Writer.StoreAsync().WithTimeout(_sendTimeoutSeconds);
+            }
+            catch (TaskCanceledException) {
+                throw new TimeoutException("Socket connection timed out.");
+            }
 #else
             throw new NotImplementedException();
 #endif
-        }
+    }
 
 
 

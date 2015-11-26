@@ -5,8 +5,11 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Windows.Foundation;
+using Windows.UI.Notifications;
 
 namespace UnIRC.Shared.Helpers
 {
@@ -263,6 +266,44 @@ namespace UnIRC.Shared.Helpers
         }
 
         #endregion Task
+
+
+        #region IAsyncOperation
+
+        public static async Task<T> WithTimeout<T>(this IAsyncOperation<T> asyncOp,
+            TimeSpan timeout)
+        {
+            var cts = new CancellationTokenSource();
+            cts.CancelAfter(timeout);
+            return await asyncOp.AsTask(cts.Token);
+        }
+
+        public static async Task<T> WithTimeout<T>(this IAsyncOperation<T> asyncOp,
+            int timeoutSeconds)
+        {
+            return await asyncOp.WithTimeout(TimeSpan.FromSeconds(timeoutSeconds));
+        }
+
+        #endregion IAsyncOperation
+
+
+        #region IAsyncAction
+
+        public static async Task WithTimeout(this IAsyncAction asyncOp,
+            TimeSpan timeout)
+        {
+            var cts = new CancellationTokenSource();
+            cts.CancelAfter(timeout);
+            await asyncOp.AsTask(cts.Token);
+        }
+
+        public static async Task WithTimeout(this IAsyncAction asyncOp,
+            int timeoutSeconds)
+        {
+            await asyncOp.WithTimeout(TimeSpan.FromSeconds(timeoutSeconds));
+        }
+
+        #endregion IAsyncAction
 
 
         #region ICommand
