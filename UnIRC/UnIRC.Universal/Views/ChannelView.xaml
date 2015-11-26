@@ -9,50 +9,88 @@
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance viewModels:ChannelViewModel}">
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.Resources>
+            <Style TargetType="ListBoxItem">
+                <Setter Property="Padding" Value="2"/>
+            </Style>
+        </Grid.Resources>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState x:Name="WideMode">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="800"/>
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="ChannelPivot.SelectedIndex" Value="0" />
+                        <Setter Target="UsersHeader.IsEnabled" Value="false" />
+                        <Setter Target="UsersHeader.Header" Value="" />
+                        <Setter Target="UsersPanel.Visibility" Value="Visible" />
+                        <Setter Target="UsersHeader.Visibility" Value="Collapsed" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="TabletMode">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="400"/>
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="ChannelPivot.SelectedIndex" Value="0" />                        
+                        <Setter Target="UsersHeader.IsEnabled" Value="false" />
+                        <Setter Target="UsersHeader.Header" Value="" />
+                        <Setter Target="UsersPanel.Visibility" Value="Visible" />
+                        <Setter Target="UsersHeader.Visibility" Value="Collapsed" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="PhoneMode">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0"/>
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="UsersHeader.IsEnabled" Value="true" />
+                        <Setter Target="UsersHeader.Header" Value="users" />
+                        <Setter Target="UsersPanel.Visibility" Value="Collapsed" />
+                        <Setter Target="UsersHeader.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="{Binding ChannelName}" Margin="10,3" Grid.Row="0"/>
-        <Grid Grid.Row="4">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="100"/>
-            </Grid.ColumnDefinitions>
+        <!--<TextBlock Text="{Binding ChannelName}" Margin="10,3" Grid.Row="0"/>-->
+        <Pivot Grid.Row="1" x:Name="ChannelPivot">
+            <PivotItem Header="{Binding ChannelName}" Margin="0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-            <ListBox
-                x:Name="Messages"
-                Grid.Column="0"
-                ItemsSource="{Binding Messages, UpdateSourceTrigger=PropertyChanged}"
-                Loaded="MessagesLoaded"
-                ItemTemplateSelector="{StaticResource ConnectionPageTemplateSelector}"
-                GotFocus="InputLostFocus">
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="Padding" Value="2"/>
-                    </Style>
-                </ListBox.ItemContainerStyle>
-            </ListBox>
-            <Grid Grid.Column="1" Width=".7" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"/>
-            <ListBox
-                ItemsSource="{Binding Users, UpdateSourceTrigger=PropertyChanged}"
-                DisplayMemberPath="Nick"
-                GotFocus="InputLostFocus"
-                Grid.Column="2">
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="Padding" Value="4,2"/>
-                    </Style>
-                </ListBox.ItemContainerStyle>
-            </ListBox>
-        </Grid>
-        <Grid Grid.Row="5">
+                    <ListBox
+                        x:Name="Messages"
+                        ItemsSource="{Binding Messages, UpdateSourceTrigger=PropertyChanged}"
+                        ItemTemplateSelector="{StaticResource ConnectionPageTemplateSelector}"
+                        Loaded="MessagesLoaded" GotFocus="InputLostFocus" Grid.Column="0"/>
+                    <Grid
+                        Grid.Column="1" Width=".7"
+                        Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"/>
+                    <ListBox
+                        x:Name="UsersPanel" Width="100"
+                        ItemsSource="{Binding Users, UpdateSourceTrigger=PropertyChanged}"
+                        DisplayMemberPath="Nick" GotFocus="InputLostFocus" Grid.Column="2"/>
+                </Grid>
+            </PivotItem>
+            <PivotItem Header="users" x:Name="UsersHeader">
+                <ListBox
+                    ItemsSource="{Binding Users, UpdateSourceTrigger=PropertyChanged}"
+                    DisplayMemberPath="Nick" GotFocus="InputLostFocus"/>
+            </PivotItem>
+            
+        </Pivot>
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="239*"/>
                 <ColumnDefinition Width="46*"/>
