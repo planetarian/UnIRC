@@ -9,11 +9,6 @@
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance viewModels:ChannelViewModel}">
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <Grid.Resources>
-            <Style TargetType="ListBoxItem">
-                <Setter Property="Padding" Value="2"/>
-            </Style>
-        </Grid.Resources>
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup>
                 <VisualState x:Name="WideMode">
@@ -21,10 +16,8 @@
                         <AdaptiveTrigger MinWindowWidth="800"/>
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
-                        <Setter Target="ChannelPivot.SelectedIndex" Value="0" />
                         <Setter Target="UsersHeader.IsEnabled" Value="false" />
-                        <Setter Target="UsersHeader.Header" Value="" />
-                        <Setter Target="UsersPanel.Visibility" Value="Visible" />
+                        <Setter Target="ChannelPivot.SelectedIndex" Value="0" />
                         <Setter Target="UsersHeader.Visibility" Value="Collapsed" />
                     </VisualState.Setters>
                 </VisualState>
@@ -33,10 +26,8 @@
                         <AdaptiveTrigger MinWindowWidth="400"/>
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
-                        <Setter Target="ChannelPivot.SelectedIndex" Value="0" />                        
                         <Setter Target="UsersHeader.IsEnabled" Value="false" />
-                        <Setter Target="UsersHeader.Header" Value="" />
-                        <Setter Target="UsersPanel.Visibility" Value="Visible" />
+                        <Setter Target="ChannelPivot.SelectedIndex" Value="0" />
                         <Setter Target="UsersHeader.Visibility" Value="Collapsed" />
                     </VisualState.Setters>
                 </VisualState>
@@ -62,6 +53,7 @@
         <!--<TextBlock Text="{Binding ChannelName}" Margin="10,3" Grid.Row="0"/>-->
         <Pivot Grid.Row="1" x:Name="ChannelPivot">
             <PivotItem Header="{Binding ChannelName}" Margin="0">
+                
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
@@ -73,6 +65,7 @@
                         x:Name="Messages"
                         ItemsSource="{Binding Messages, UpdateSourceTrigger=PropertyChanged}"
                         ItemTemplateSelector="{StaticResource ConnectionPageTemplateSelector}"
+                        ItemContainerStyle="{StaticResource EventContainerStyle}"
                         Loaded="MessagesLoaded" GotFocus="InputLostFocus" Grid.Column="0"/>
                     <Grid
                         Grid.Column="1" Width=".7"
@@ -80,15 +73,18 @@
                     <ListBox
                         x:Name="UsersPanel" Width="100"
                         ItemsSource="{Binding Users, UpdateSourceTrigger=PropertyChanged}"
+                        ItemContainerStyle="{StaticResource EventContainerStyle}"
                         DisplayMemberPath="Nick" GotFocus="InputLostFocus" Grid.Column="2"/>
                 </Grid>
             </PivotItem>
-            <PivotItem Header="users" x:Name="UsersHeader">
+            <PivotItem
+                Header="{Binding Title, Converter={StaticResource EmptyStringConverter}}"
+                x:Name="UsersHeader" Margin="10,0,10,10">
                 <ListBox
                     ItemsSource="{Binding Users, UpdateSourceTrigger=PropertyChanged}"
                     DisplayMemberPath="Nick" GotFocus="InputLostFocus"/>
             </PivotItem>
-            
+
         </Pivot>
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>

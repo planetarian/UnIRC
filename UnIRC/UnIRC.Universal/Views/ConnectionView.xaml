@@ -63,14 +63,10 @@
             ItemsSource="{Binding Messages}"
             Grid.Row="4"
             Loaded="MessagesLoaded"
+            ItemContainerStyle="{StaticResource EventContainerStyle}"
             ItemTemplateSelector="{StaticResource ConnectionPageTemplateSelector}"
-            GotFocus="InputLostFocus">
-            <ListBox.ItemContainerStyle>
-                <Style TargetType="ListBoxItem">
-                    <Setter Property="Padding" Value="2"/>
-                </Style>
-            </ListBox.ItemContainerStyle>
-        </ListBox>
+            GotFocus="InputLostFocus"
+            MaxHeight="4000"/>
         <Grid Grid.Row="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="239*"/>

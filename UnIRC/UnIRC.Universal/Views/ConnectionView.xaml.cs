@@ -3,6 +3,7 @@ using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Documents;
 using Windows.UI.Xaml.Media;
 using UnIRC.Helpers;
 using UnIRC.ViewModels;
@@ -20,6 +21,7 @@ namespace UnIRC.Views
         private ScrollViewer _messagesScrollViewer;
         private ScrollBar _messagesScrollBar;
         private double _lastVerticalOffset;
+        private double _earlyExtentHeight;
         private double _lastExtentHeight;
         private double _lastViewportHeight;
         private double _lastScrollViewerHeight;
@@ -80,25 +82,23 @@ namespace UnIRC.Views
             lock (_lock)
             {
                 // VerticalOffset when fully scrolled up is 2, so the delta must be greater than that.
-                const double delta = 3;
+                const double delta = 2;
 
                 double extentHeight = _messagesScrollViewer.ExtentHeight;
                 double verticalOffset = _messagesScrollViewer.VerticalOffset;
                 double viewportHeight = _messagesScrollViewer.ViewportHeight;
                 double scrollViewerHeight = _messagesScrollViewer.ActualHeight;
+                double lastDiff = _lastExtentHeight - _lastViewportHeight - _lastVerticalOffset;
 
-                bool viewportFilled = extentHeight > viewportHeight;
-                bool extentHeightChanged = extentHeight != _lastExtentHeight;
-                bool scrollViewerHeightChanged = scrollViewerHeight != _lastScrollViewerHeight;
-                bool didNotScrollUp = _lastVerticalOffset > (_lastExtentHeight - _lastViewportHeight) - delta;
-
-                if (viewportFilled && (didNotScrollUp && (extentHeightChanged || scrollViewerHeightChanged)))
+                //if (viewportHeight > 0 && viewportFilled && (didNotScrollUp && (extentHeightChanged || scrollViewerHeightChanged)))
+                if (delta >= lastDiff && verticalOffset == _lastVerticalOffset)
                 {
                     verticalOffset = _messagesScrollViewer.ScrollableHeight;
                     _messagesScrollViewer.ChangeView(null, verticalOffset, null);
                 }
 
-                _lastExtentHeight = extentHeight;
+                _lastExtentHeight = _earlyExtentHeight;
+                _earlyExtentHeight = extentHeight;
                 _lastVerticalOffset = verticalOffset;
                 _lastViewportHeight = viewportHeight;
                 _lastScrollViewerHeight = scrollViewerHeight;

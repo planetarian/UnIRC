@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using UnIRC.IrcEvents;
@@ -27,12 +28,12 @@ namespace UnIRC.Shared.Models
         private const int _readTimeoutSeconds = 60*5;
         private const int _sendTimeoutSeconds = 60;
         private readonly object _connectLock = new object();
+        private readonly object _readDataLock = new object();
         private readonly SemaphoreSlim _asyncLock = new SemaphoreSlim(1);
 
 #if WINDOWS_UWP
         public StreamSocket Socket { get; set; }
         public DataReader Reader { get; set; }
-        public DataWriter Writer { get; set; }
 #endif
 
 #pragma warning disable 1998
@@ -48,6 +49,8 @@ namespace UnIRC.Shared.Models
                         throw new InvalidOperationException("Already connected.");
                     if (IsConnecting)
                         throw new InvalidOperationException("Already connecting.");
+                    if (IsDisconnecting)
+                        throw new InvalidOperationException("Currently disconnecting.");
                     IsConnecting = true;
                 }
             }
@@ -70,7 +73,7 @@ namespace UnIRC.Shared.Models
             }
             catch
             {
-                // Nothin' doin'
+                throw;
             }
 
             Reader = new DataReader(Socket.InputStream)
@@ -78,7 +81,6 @@ namespace UnIRC.Shared.Models
                 InputStreamOptions = InputStreamOptions.Partial,
                 UnicodeEncoding = UnicodeEncoding.Utf8
             };
-            Writer = new DataWriter(Socket.OutputStream);
 
             IsConnected = true;
             IsConnecting = false;
@@ -107,12 +109,7 @@ namespace UnIRC.Shared.Models
                     catch
                     {
                         // object already closed
-                    }
-                    if (Writer != null)
-                    {
-                        Writer.DetachStream();
-                        Writer.Dispose();
-                    }
+                    }//*/
                     if (Reader != null)
                     {
                         Reader.DetachStream();
@@ -124,6 +121,7 @@ namespace UnIRC.Shared.Models
                 CurrentReadData = "";
                 IsConnecting = false;
                 IsConnected = false;
+                IsDisconnecting = false;
             }
 #else
             throw new NotImplementedException();
@@ -139,14 +137,17 @@ namespace UnIRC.Shared.Models
             const string nl = "\r\n";
             while (true)
             {
-                int breakIndex = CurrentReadData.IndexOf(nl, StringComparison.Ordinal);
-                if (breakIndex >= 0)
+                lock (_readDataLock)
                 {
-                    string message = CurrentReadData.Substring(0, breakIndex);
-                    CurrentReadData = CurrentReadData.Substring(breakIndex + nl.Length);
-                    IrcEvent ev = IrcEvent.GetEvent(message);
-                    ev.EventType = IrcEventType.FromServer;
-                    return ev;
+                    int breakIndex = CurrentReadData.IndexOf(nl, StringComparison.Ordinal);
+                    if (breakIndex >= 0)
+                    {
+                        string message = CurrentReadData.Substring(0, breakIndex);
+                        CurrentReadData = CurrentReadData.Substring(breakIndex + nl.Length);
+                        IrcEvent ev = IrcEvent.GetEvent(message);
+                        ev.EventType = IrcEventType.FromServer;
+                        return ev;
+                    }
                 }
 
                 uint bytesRead;
@@ -154,9 +155,36 @@ namespace UnIRC.Shared.Models
                 {
                     bytesRead = await Reader.LoadAsync(bufferLength).WithTimeout(_readTimeoutSeconds);
                 }
-                catch (TaskCanceledException)
+                catch (ObjectDisposedException ex)
                 {
-                    throw new TimeoutException("Socket connection timed out.");
+                    throw new OperationCanceledException("Socket disconnected by user.", ex);
+                }
+                catch (COMException ex)
+                {
+                    throw new OperationCanceledException("Socket disconnected by user.", ex);
+                }
+                catch (Exception ex) when (
+                    SocketError.GetStatus(ex.HResult) == SocketErrorStatus.SoftwareCausedConnectionAbort ||
+                    SocketError.GetStatus(ex.HResult) == SocketErrorStatus.OperationAborted ||
+                    SocketError.GetStatus(ex.HResult) == SocketErrorStatus.ConnectionResetByPeer ||
+                    SocketError.GetStatus(ex.HResult) == SocketErrorStatus.ConnectionTimedOut ||
+                    SocketError.GetStatus(ex.HResult) == SocketErrorStatus.HostIsDown ||
+                    SocketError.GetStatus(ex.HResult) == SocketErrorStatus.NetworkIsDown ||
+                    SocketError.GetStatus(ex.HResult) == SocketErrorStatus.NetworkDroppedConnectionOnReset ||
+                    SocketError.GetStatus(ex.HResult) == SocketErrorStatus.NetworkIsUnreachable ||
+                    SocketError.GetStatus(ex.HResult) == SocketErrorStatus.Unknown ||
+                    SocketError.GetStatus(ex.HResult) == SocketErrorStatus.UnreachableHost)
+                {
+                    // We closed the connection and cleanly disposed the reader
+                    throw new OperationCanceledException($"Socket disconnected. ({SocketError.GetStatus(ex.HResult)})", ex);
+                }
+                catch (TaskCanceledException ex)
+                {
+                    if (IsDisconnecting)
+                        throw new OperationCanceledException("Socket disconnected by user.", ex);
+
+                    await DisconnectAsync();
+                    throw new TimeoutException("Connect timed out.", ex);
                 }
                 catch
                 {
@@ -169,6 +197,7 @@ namespace UnIRC.Shared.Models
                     throw new EndOfStreamException(CurrentReadData);
                 }
                 string readString = Reader.ReadString(bytesRead);
+                
                 CurrentReadData += readString;
 
                 await Task.Delay(10);
@@ -183,18 +212,35 @@ namespace UnIRC.Shared.Models
 #pragma warning restore 1998
         {
 #if WINDOWS_UWP
-            if (!IsConnected)
+            if (!IsConnected || Socket == null)
                 return;
 
-            Writer.WriteString(data + "\r\n");
             try
             {
-                await Writer.StoreAsync().WithTimeout(_sendTimeoutSeconds);
+                using (var writer = new DataWriter(Socket.OutputStream))
+                {
+                    writer.UnicodeEncoding = UnicodeEncoding.Utf8;
+                    writer.WriteString(data + "\r\n");
+                    await writer.StoreAsync().WithTimeout(_sendTimeoutSeconds);
+                    await writer.FlushAsync();
+                    writer.DetachStream();
+                }
             }
             catch (TaskCanceledException)
             {
-                if (!IsDisconnecting)
-                    throw new TimeoutException("Socket connection timed out.");
+                if (IsDisconnecting)
+                    throw new OperationCanceledException("Socket disconnected by user.");
+
+                await DisconnectAsync();
+                throw new TimeoutException("Connect timed out.");
+            }
+            catch (NullReferenceException)
+            {
+                // Race condition -- Socket was null-referenced right after we checked
+            }
+            catch
+            {
+                throw;
             }
 #else
             throw new NotImplementedException();
