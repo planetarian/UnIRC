@@ -74,6 +74,8 @@ namespace UnIRC.IrcEvents
                     return new IrcMotdBeginEvent(m);
                 case "376":
                     return new IrcMotdEndEvent(m);
+                case "433":
+                    return new IrcNickInUseEvent(m);
                 case "error":
                     return new IrcErrorEvent(m);
                 default:

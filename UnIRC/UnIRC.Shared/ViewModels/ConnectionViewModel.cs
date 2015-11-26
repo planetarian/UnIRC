@@ -232,21 +232,7 @@ namespace UnIRC.ViewModels
             set { Set(ref _isConnectionOpen, value); }
         }
         private bool _isConnectionOpen;
-
-        public bool ShowDisconnect
-        {
-            get { return _showDisconnect; }
-            set { Set(ref _showDisconnect, value); }
-        }
-        private bool _showDisconnect;
-
-        public bool ShowReconnect
-        {
-            get { return _showReconnect; }
-            set { Set(ref _showReconnect, value); }
-        }
-        private bool _showReconnect;
-
+        
         public ObservableCollection<string> Motd
         {
             get { return _motd; }
@@ -292,6 +278,9 @@ namespace UnIRC.ViewModels
         private const bool _reconnectMultiply = false;
         private int _reconnectSeconds = _defaultReconnectSeconds;
         private DateTime _nextReconnectDate;
+        private bool _tryReclaimNick;
+        private int _nickReclaimRetrySeconds = 10;
+        private DateTime _nextNickReclaimDate;
 
 
         public ConnectionViewModel(Network network, Server server, UserInfo userInfo,
@@ -320,8 +309,6 @@ namespace UnIRC.ViewModels
                         CurrentTypedMessage = InputMessage;
                     }
                 });
-            this.OnChanged(x => x.IsConnected, x => x.IsConnecting, x => x.IsReconnecting)
-                .Do(() => ShowDisconnect = IsConnected || IsReconnecting);
             // ReSharper disable once ExplicitCallerInfoArgument
             this.OnCollectionChanged(x => x.Channels).Do(() => RaisePropertyChanged(nameof(Channels)));
 
@@ -333,8 +320,7 @@ namespace UnIRC.ViewModels
                     Server = selected;
             });
 
-            ReconnectCommand = GetCommand(async () => await Connect(),
-                () => !IsConnected, () => IsConnected);
+            ReconnectCommand = GetCommand(async () => await Reconnect());
             DisconnectCommand = GetCommand(async () => await Quit(),
                 () => IsConnected, () => IsConnected);
             SendMessageCommand = GetCommand(async () => await SendMessageAsync(),
@@ -384,6 +370,13 @@ namespace UnIRC.ViewModels
                 MessagesSent.Add(CurrentTypedMessage);
                 InputMessage = "";
             };
+        }
+
+        private async Task Reconnect()
+        {
+            IsReconnecting = true;
+            if (IsConnectionOpen || IsConnecting)
+                await Disconnect();
         }
 
         private async Task Connect()
@@ -441,6 +434,7 @@ namespace UnIRC.ViewModels
         private async Task Disconnect()
         {
             IsConnected = false;
+            IsConnecting = false;
             IsConnectionOpen = false;
             await Endpoint.DisconnectAsync(ConnectionId);
 
@@ -534,39 +528,48 @@ namespace UnIRC.ViewModels
                         _eventQueue.Enqueue(ev);
                     continue;
                 }
-                catch (TimeoutException) when (IsConnected)
+                catch (TimeoutException) when (IsConnected || IsConnecting)
                 {
                     errorMessage = "Connection timed out.";
                 }
-                catch (EndOfStreamException) when (IsConnected)
+                catch (EndOfStreamException) when (IsConnected || IsConnecting)
                 {
                     // Server closed the connection
                     errorMessage = "Socket Disconnected";
                 }
-                catch (Exception ex) when (IsConnected && ex.HResult == -2147014843)
+                catch (Exception ex) when (ex.HResult == -2147014843 && (IsConnected || IsConnecting))
                 {
                     // We closed the connection and cleanly disposed the reader
                     errorMessage = "Connection closed (socket aborted)";
                 }
-                catch (ObjectDisposedException) when (IsConnected)
+                catch (ObjectDisposedException) when (IsConnected || IsConnecting)
                 {
                     // We closed the connection and cleanly disposed the reader
                     errorMessage = "Connection closed (object disposed)";
                 }
-                catch (COMException ex)
+                catch (COMException ex) when (IsConnected || IsConnecting)
                 {
                     errorMessage = $"Thread ended. {ex.Message}";
                 }
-                catch (Exception ex) when (IsConnected)
+                catch (Exception ex) when (IsConnected || IsConnecting)
                 {
                     // All other read errors
-                    errorMessage = $"WaitForData() Error: {ex.Message}{Environment.NewLine}{ex}";
+                    errorMessage = $"WaitForData() Error: {ex}";
+                }
+                catch (Exception ex)
+                {
+                    errorMessage = $"WaitForData() caught while not connected: {ex.GetType().FullName}";
+                    await ShowError(errorMessage);
+                    continue;
                 }
 
-                await Disconnect();
                 await ShowError(errorMessage);
-                IsReconnecting = true;
-                ShowReconnectMessage();
+                if (IsConnected || IsConnecting)
+                {
+                    await Disconnect();
+                    IsReconnecting = true;
+                    ShowReconnectMessage();
+                }
             }
         }
 
@@ -616,6 +619,12 @@ namespace UnIRC.ViewModels
                     Task connectTask = Connect();
                 }
 
+                if (_tryReclaimNick && IsConnected &&  _nextNickReclaimDate < DateTime.Now)
+                {
+                    _nextNickReclaimDate = DateTime.Now + TimeSpan.FromSeconds(_nickReclaimRetrySeconds);
+                    await SendMessageAsync($"NICK {DefaultNick}");
+                }
+
                 await Task.Delay(_timerMillis);
             }
         }
@@ -634,6 +643,7 @@ namespace UnIRC.ViewModels
                 else if (ev is IrcMotdEvent) await HandleMotdEvent((IrcMotdEvent)ev);
                 else if (ev is IrcMotdEndEvent) await HandleMotdEndEvent((IrcMotdEndEvent)ev);
                 else if (ev is IrcNickEvent) await HandleNickEvent((IrcNickEvent)ev);
+                else if (ev is IrcNickInUseEvent) await HandleNickInUseEvent((IrcNickInUseEvent)ev);
                 else if (ev is IrcNamesItemEvent) await HandleNamesItemEvent((IrcNamesItemEvent) ev);
                 else if (ev is IrcNamesEndEvent) await HandleNamesEndEvent((IrcNamesEndEvent) ev);
                 else if (ev is IrcNoticeEvent) await HandleNoticeEvent((IrcNoticeEvent) ev);
@@ -700,8 +710,10 @@ namespace UnIRC.ViewModels
             DisplayEvent(ev, true);
             if (ev.EventType == IrcEventType.FromServer
                 && ev.Message.ToLower().StartsWith("closing link"))
+            {
                 await Disconnect();
-            IsReconnecting = true;
+                IsReconnecting = true;
+            }
         }
 
         private async Task HandleInviteEvent(IrcInviteEvent ev)
@@ -851,6 +863,7 @@ namespace UnIRC.ViewModels
 
             if (ev.OldNick == Nick)
             {
+                _tryReclaimNick = false;
                 Nick = ev.NewNick;
                 foreach (ChannelViewModel channel in Channels.Where(c => c.IsJoined))
                 {
@@ -882,6 +895,21 @@ namespace UnIRC.ViewModels
                 }
             }
 
+        }
+
+        private async Task HandleNickInUseEvent(IrcNickInUseEvent ev)
+        {
+            if (ev.EventType != IrcEventType.FromServer) return;
+
+            DisplayEvent(ev);
+            if (ev.OldNick != "*") return;
+
+            if (ev.NewNick == DefaultNick)
+                await SendMessageAsync($"NICK {BackupNick}");
+            else
+                await SendMessageAsync($"NICK {DefaultNick}{RandomHelper.RandomInt(10, 100)}");
+
+            _tryReclaimNick = true;
         }
 
         private async Task HandleNoticeEvent(IrcNoticeEvent ev)
