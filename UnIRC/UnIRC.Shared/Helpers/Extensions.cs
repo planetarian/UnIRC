@@ -5,11 +5,12 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+#if WINDOWS_UWP
+using System.Threading;
 using Windows.Foundation;
-using Windows.UI.Notifications;
+#endif
 
 namespace UnIRC.Shared.Helpers
 {
@@ -45,16 +46,16 @@ namespace UnIRC.Shared.Helpers
         public static bool IsNumber(this object value)
         {
             return value is int
-                    || value is double
-                    || value is decimal
-                    || value is float
-                    || value is long
-                    || value is byte
-                    || value is uint
-                    || value is ulong
-                    || value is sbyte
-                    || value is short
-                    || value is ushort;
+                   || value is double
+                   || value is decimal
+                   || value is float
+                   || value is long
+                   || value is byte
+                   || value is uint
+                   || value is ulong
+                   || value is sbyte
+                   || value is short
+                   || value is ushort;
         }
 
         #endregion Object
@@ -114,7 +115,7 @@ namespace UnIRC.Shared.Helpers
         public static string[] Split(this string str, char splitChar,
             StringSplitOptions options = StringSplitOptions.None)
         {
-            return str.Split(new[] { splitChar }, options);
+            return str.Split(new[] {splitChar}, options);
         }
 
         #endregion String
@@ -145,8 +146,8 @@ namespace UnIRC.Shared.Helpers
         {
             DateTime max = DateTime.MaxValue;
             DateTime min = DateTime.MinValue;
-            return new[] { a2 ?? max, b2 ?? max }.Min() -
-                   new[] { a1 ?? min, b1 ?? min }.Max();
+            return new[] {a2 ?? max, b2 ?? max}.Min() -
+                   new[] {a1 ?? min, b1 ?? min}.Max();
         }
 
         #endregion DateTime
@@ -250,7 +251,7 @@ namespace UnIRC.Shared.Helpers
 
         #endregion ICollection
 
-        
+
         #region Task
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -267,7 +268,7 @@ namespace UnIRC.Shared.Helpers
 
         #endregion Task
 
-
+#if WINDOWS_UWP
         #region IAsyncOperation
 
         public static async Task<T> WithTimeout<T>(this IAsyncOperation<T> asyncOp,
@@ -304,6 +305,7 @@ namespace UnIRC.Shared.Helpers
         }
 
         #endregion IAsyncAction
+#endif
 
 
         #region ICommand

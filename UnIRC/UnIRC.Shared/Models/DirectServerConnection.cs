@@ -1,17 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using UnIRC.IrcEvents;
 using UnIRC.Shared.Helpers;
 using UnIRC.Shared.IrcEvents;
-using UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding;
 #if WINDOWS_UWP
 using Windows.Networking;
 using Windows.Networking.Sockets;
 using Windows.Storage.Streams;
+using UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding;
 #endif
 
 namespace UnIRC.Shared.Models
@@ -21,22 +19,39 @@ namespace UnIRC.Shared.Models
         public int Id { get; set; }
         public string Hostname { get; set; }
         public int Port { get; set; }
+        public bool IsConnected { get; set; }
+        public bool IsConnecting { get; set; }
+        public bool IsDisconnecting { get; set; }
+        public string CurrentReadData { get; set; } = "";
+        private const int _connectTimeoutSeconds = 20;
+        private const int _readTimeoutSeconds = 60*5;
+        private const int _sendTimeoutSeconds = 60;
+        private readonly object _connectLock = new object();
+        private readonly SemaphoreSlim _asyncLock = new SemaphoreSlim(1);
 
 #if WINDOWS_UWP
         public StreamSocket Socket { get; set; }
         public DataReader Reader { get; set; }
         public DataWriter Writer { get; set; }
 #endif
-        public bool ConnectionOpen { get; set; }
-        public string CurrentReadData { get; set; } = "";
-        private int _connectTimeoutSeconds = 20;
-        private int _readTimeoutSeconds = 60*5;
-        private int _sendTimeoutSeconds = 60;
 
+#pragma warning disable 1998
         public async Task ConnectAsync(string hostname, int port)
+#pragma warning restore 1998
         {
 #if WINDOWS_UWP
-            ConnectionOpen = true;
+            using (await _asyncLock.LockAsync())
+            {
+                lock (_connectLock)
+                {
+                    if (IsConnected)
+                        throw new InvalidOperationException("Already connected.");
+                    if (IsConnecting)
+                        throw new InvalidOperationException("Already connecting.");
+                    IsConnecting = true;
+                }
+            }
+
             var targetHostname = new HostName(hostname);
             Socket = new StreamSocket();
 
@@ -47,8 +62,15 @@ namespace UnIRC.Shared.Models
             }
             catch (TaskCanceledException)
             {
-                Socket.Dispose();
-                throw new TimeoutException("Socket connection timed out.");
+                if (IsDisconnecting)
+                    throw new OperationCanceledException("Connect cancelled.");
+
+                await DisconnectAsync();
+                throw new TimeoutException("Connect timed out.");
+            }
+            catch
+            {
+                // Nothin' doin'
             }
 
             Reader = new DataReader(Socket.InputStream)
@@ -57,23 +79,32 @@ namespace UnIRC.Shared.Models
                 UnicodeEncoding = UnicodeEncoding.Utf8
             };
             Writer = new DataWriter(Socket.OutputStream);
+
+            IsConnected = true;
+            IsConnecting = false;
 #else
             throw new NotImplementedException();
 #endif
         }
 
+#pragma warning disable 1998
         public async Task DisconnectAsync()
+#pragma warning restore 1998
         {
 #if WINDOWS_UWP
-            try
+            using (await _asyncLock.LockAsync())
             {
+                if (!IsConnecting && !IsConnected)
+                    return;
+                IsDisconnecting = true;
+
                 if (Socket != null)
                 {
                     try
                     {
                         await Socket.CancelIOAsync();
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         // object already closed
                     }
@@ -91,19 +122,17 @@ namespace UnIRC.Shared.Models
                     Socket = null;
                 }
                 CurrentReadData = "";
-                ConnectionOpen = false;
+                IsConnecting = false;
+                IsConnected = false;
             }
-            catch (Exception ex)
-            {
-                
-            }
-            await Task.Delay(10);
 #else
             throw new NotImplementedException();
 #endif
         }
 
+#pragma warning disable 1998
         public async Task<IrcEvent> WaitForEventAsync()
+#pragma warning restore 1998
         {
 #if WINDOWS_UWP
             const int bufferLength = 250;
@@ -129,14 +158,15 @@ namespace UnIRC.Shared.Models
                 {
                     throw new TimeoutException("Socket connection timed out.");
                 }
+                catch
+                {
+                    throw;
+                }
 
                 if (bytesRead == 0)
                 {
-                    if (CurrentReadData.Length > 0)
-                    {
-                        ConnectionOpen = false;
-                        throw new EndOfStreamException(CurrentReadData);
-                    }
+                    IsConnected = false;
+                    throw new EndOfStreamException(CurrentReadData);
                 }
                 string readString = Reader.ReadString(bytesRead);
                 CurrentReadData += readString;
@@ -148,28 +178,35 @@ namespace UnIRC.Shared.Models
 #endif
         }
 
+#pragma warning disable 1998
         public async Task SendStringAsync(string data)
+#pragma warning restore 1998
         {
 #if WINDOWS_UWP
+            if (!IsConnected)
+                return;
+
             Writer.WriteString(data + "\r\n");
             try
             {
                 await Writer.StoreAsync().WithTimeout(_sendTimeoutSeconds);
             }
-            catch (TaskCanceledException) {
-                throw new TimeoutException("Socket connection timed out.");
+            catch (TaskCanceledException)
+            {
+                if (!IsDisconnecting)
+                    throw new TimeoutException("Socket connection timed out.");
             }
 #else
             throw new NotImplementedException();
 #endif
-    }
+        }
 
 
 
 #if WINDOWS_UWP
-        public HostName LocalAddress => Socket?.Information.LocalAddress;
+        public string LocalAddress => Socket?.Information.LocalAddress.ToString();
 #else
-        public HostName LocalAddress
+        public string LocalAddress
         {
             get { throw new NotImplementedException(); }
         }

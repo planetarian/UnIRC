@@ -7,15 +7,17 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+#if WINDOWS_UWP
 using Windows.ApplicationModel;
-using Windows.Networking;
 using Windows.UI.Xaml;
+#endif
 using UnIRC.IrcEvents;
 using UnIRC.Models;
 using UnIRC.Shared.Helpers;
 using UnIRC.Shared.IrcEvents;
 using UnIRC.Shared.Messages;
 using UnIRC.Shared.Models;
+#pragma warning disable 1998
 
 namespace UnIRC.ViewModels
 {
@@ -289,14 +291,16 @@ namespace UnIRC.ViewModels
         private int _reconnectSeconds = _defaultReconnectSeconds;
         private DateTime _nextReconnectDate;
         private bool _tryReclaimNick;
-        private int _nickReclaimRetrySeconds = 10;
+        private const int _nickReclaimRetrySeconds = 10;
         private DateTime _nextNickReclaimDate;
 
 
         public ConnectionViewModel(Network network, Server server, UserInfo userInfo,
             IConnectionEndpoint endpoint)
         {
+#if WINDOWS_UWP
             Application.Current.Suspending += OnSuspending;
+#endif
 
             if (IsInDesignModeStatic || IsInDesignMode) return;
 
@@ -362,6 +366,7 @@ namespace UnIRC.ViewModels
 
             Endpoint.CreateConnection(ConnectionId);
             
+            // ReSharper disable once UnusedVariable
             Task processTask = ProcessEventsAsync();
             IsReconnecting = true;
         }
@@ -416,6 +421,7 @@ namespace UnIRC.ViewModels
                 }
 
             }
+            // ReSharper disable once FunctionNeverReturns
         }
 
         private void PrevHistoryMessage()
@@ -434,7 +440,7 @@ namespace UnIRC.ViewModels
             {
                 MessagesSent.Add(CurrentTypedMessage);
                 InputMessage = "";
-            };
+            }
         }
 
         private async Task Reconnect()
@@ -484,7 +490,7 @@ namespace UnIRC.ViewModels
                 if (!Password.IsNullOrEmpty())
                     await SendMessageAsync($"PASS {Password}");
                 await SendMessageAsync($"NICK {DefaultNick}");
-                HostName localAddress = Endpoint.GetLocalAddress(ConnectionId);
+                string localAddress = Endpoint.GetLocalAddress(ConnectionId);
                 await SendMessageAsync($@"USER {EmailAddress} ""{localAddress}"" ""{Address}"" :{FullName}");
             }
             catch (Exception ex)
@@ -664,11 +670,13 @@ namespace UnIRC.ViewModels
             }
         }
 
+#if WINDOWS_UWP
         private async void OnSuspending(object o, SuspendingEventArgs a)
         {
             if (IsConnected || IsConnecting)
                 await Quit();
         }
+#endif
 
         private async Task HandleIrcEventAsync(IrcEvent ev)
         {
@@ -723,10 +731,11 @@ namespace UnIRC.ViewModels
                     .SwitchAsync(ev);//*/
             }
         }
-        
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+
+        // ReSharper disable SuggestBaseTypeForParameter
+        // ReSharper disable MemberCanBeMadeStatic.Local
+
         private async Task HandleChannelModeEvent(IrcChannelModeEvent ev)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             if (ev.EventType != IrcEventType.FromServer) return;
 
@@ -735,13 +744,15 @@ namespace UnIRC.ViewModels
                 .FirstOrDefault(c => c.ChannelName == channelName);
             if (channel == null)
             {
-                DisplayEvent("Received a MODE message for a channel we're not in!");
+                await ShowError("Received a MODE message for a channel we're not in!");
                 return;
             }
             DisplayEvent(ev, channel);
         }
 
+#pragma warning disable 1998
         private async Task HandleCreatedEvent(IrcCreatedEvent ev)
+#pragma warning restore 1998
         {
             DisplayEvent(ev);
         }
@@ -757,11 +768,13 @@ namespace UnIRC.ViewModels
             }
         }
 
+#pragma warning disable 1998
         private async Task HandleInviteEvent(IrcInviteEvent ev)
+#pragma warning restore 1998
         {
             DisplayEvent(ev);
         }
-
+        
         private async Task HandleJoinEvent(IrcJoinEvent ev)
         {
             if (ev.EventType != IrcEventType.FromServer) return;
@@ -775,7 +788,7 @@ namespace UnIRC.ViewModels
                 {
                     if (channel.IsJoined)
                     {
-                        DisplayEvent($"[ Received a JOIN message for {channelName} which we're already in! ]");
+                        await ShowError($"Received a JOIN message for {channelName} which we're already in!");
                         return;
                     }
                     channel.WasJoinedBeforeDisconnect = false;
@@ -791,19 +804,19 @@ namespace UnIRC.ViewModels
             {
                 if (!channel.IsJoined)
                 {
-                    DisplayEvent($"[ Received a JOIN message on {channelName} for {ev.User.Nick} but we're not joined! ]");
+                    await ShowError($"Received a JOIN message on {channelName} for {ev.User.Nick} but we're not joined!");
                     return;
                 }
                 if (channel.Users.Any(u => u.Nick == ev.User.Nick))
                 {
-                    DisplayEvent($"[ Received a JOIN message on {channelName} for {ev.User.Nick} who is already there! ]");
+                    await ShowError($"Received a JOIN message on {channelName} for {ev.User.Nick} who is already there!");
                     return;
                 }
                 channel.Users.Add(ev.User);
             }
             DisplayEvent(ev, channel);
         }
-
+        
         private async Task HandleKickEvent(IrcKickEvent ev)
         {
             if (ev.EventType != IrcEventType.FromServer) return;
@@ -813,7 +826,7 @@ namespace UnIRC.ViewModels
                 .FirstOrDefault(c => c.ChannelName == channelName);
             if (channel == null)
             {
-                DisplayEvent($"[ Received a KICK message for {channelName} which we're not in! ]");
+                await ShowError($"Received a KICK message for {channelName} which we're not in!");
                 return;
             }
 
@@ -827,7 +840,7 @@ namespace UnIRC.ViewModels
                 {
                     if (channel.Users.All(u => u.Nick != nick))
                     {
-                        DisplayEvent($"[ Received a KICK message for {nick} who isn't there! ]");
+                        await ShowError($"Received a KICK message for {nick} who isn't there!");
                         continue;
                     }
                     channel.Users.Remove(channel.Users.First(u => u.Nick == nick));
@@ -836,24 +849,32 @@ namespace UnIRC.ViewModels
             DisplayEvent(ev, channel);
         }
 
+#pragma warning disable 1998
         private async Task HandleMotdBeginEvent(IrcMotdBeginEvent ev)
+#pragma warning restore 1998
         {
             Motd.Clear();
             DisplayEvent(ev);
         }
 
+#pragma warning disable 1998
         private async Task HandleMotdEvent(IrcMotdEvent ev)
+#pragma warning restore 1998
         {
             Motd.Add(ev.Message);
             DisplayEvent(ev);
         }
 
+#pragma warning disable 1998
         private async Task HandleMotdEndEvent(IrcMotdEndEvent ev)
+#pragma warning restore 1998
         {
             DisplayEvent(ev);
         }
 
+#pragma warning disable 1998
         private async Task HandleNamesItemEvent(IrcNamesItemEvent ev)
+#pragma warning restore 1998
         {
             if (ev.EventType != IrcEventType.FromServer) return;
 
@@ -864,7 +885,9 @@ namespace UnIRC.ViewModels
             DisplayEvent(ev);
         }
 
+#pragma warning disable 1998
         private async Task HandleNamesEndEvent(IrcNamesEndEvent ev)
+#pragma warning restore 1998
         {
             if (ev.EventType != IrcEventType.FromServer) return;
 
@@ -897,7 +920,7 @@ namespace UnIRC.ViewModels
 
             DisplayEvent(ev);
         }
-
+        
         private async Task HandleNickEvent(IrcNickEvent ev)
         {
             if (ev.EventType != IrcEventType.FromServer) return;
@@ -931,8 +954,7 @@ namespace UnIRC.ViewModels
                 }
                 if (!found)
                 {
-                    DisplayEvent($"[ Received a NICK message for {ev.OldNick}->{ev.NewNick} who we can't find! ]");
-                    return;
+                    await ShowError($"Received a NICK message for {ev.OldNick}->{ev.NewNick} who we can't find!");
                 }
             }
 
@@ -952,7 +974,7 @@ namespace UnIRC.ViewModels
 
             _tryReclaimNick = true;
         }
-
+        
         private async Task HandleNoticeEvent(IrcNoticeEvent ev)
         {
             string target = ev.Target;
@@ -962,7 +984,7 @@ namespace UnIRC.ViewModels
                     .FirstOrDefault(c => c.ChannelName == target);
                 if (channel == null)
                 {
-                    DisplayEvent($"[ Received a NOTICE message for {target} which we're not in! ]");
+                    await ShowError($"Received a NOTICE message for {target} which we're not in!");
                     return;
                 }
                 DisplayEvent(ev, channel);
@@ -972,7 +994,7 @@ namespace UnIRC.ViewModels
                 DisplayEvent(ev);
             }
         }
-
+        
         private async Task HandlePartEvent(IrcPartEvent ev)
         {
             if (ev.EventType != IrcEventType.FromServer) return;
@@ -983,7 +1005,7 @@ namespace UnIRC.ViewModels
                 .FirstOrDefault(c => c.ChannelName == channelName);
             if (channel == null)
             {
-                DisplayEvent($"[ Received a PART message for {channelName} which we're not in! ]");
+                await ShowError($"Received a PART message for {channelName} which we're not in!");
                 return;
             }
             if (nick == Nick)
@@ -992,7 +1014,7 @@ namespace UnIRC.ViewModels
             }
             else if (channel.Users.All(u => u.Nick != nick))
             {
-                DisplayEvent($"[ Received a PART message for {nick} on {channelName} which they weren't in! ]");
+                await ShowError($"Received a PART message for {nick} on {channelName} which they weren't in!");
                 return;
             }
             else
@@ -1010,11 +1032,13 @@ namespace UnIRC.ViewModels
             await SendMessageAsync($"PONG :{ev.Content}");
         }
 
+#pragma warning disable 1998
         private async Task HandlePongEvent(IrcPongEvent ev)
+#pragma warning restore 1998
         {
             DisplayEvent(ev);
         }
-
+        
         private async Task HandlePrivmsgEvent(IrcPrivmsgEvent ev)
         {
             string target = ev.Target;
@@ -1024,7 +1048,7 @@ namespace UnIRC.ViewModels
                     .FirstOrDefault(c => c.ChannelName == target);
                 if (channel == null)
                 {
-                    DisplayEvent($"[ Received a PRIVMSG message for {target} which we're not in! ]");
+                    await ShowError($"Received a PRIVMSG message for {target} which we're not in!");
                     return;
                 }
                 DisplayEvent(ev, channel);
@@ -1034,7 +1058,7 @@ namespace UnIRC.ViewModels
                 DisplayEvent(ev);
             }
         }
-
+        
         private async Task HandleQuitEvent(IrcQuitEvent ev)
         {
             if (ev.EventType != IrcEventType.FromServer) return;
@@ -1053,26 +1077,34 @@ namespace UnIRC.ViewModels
             }
             if (!found)
             {
-                DisplayEvent($"[ Received a QUIT message for {nick} who we can't find! ]");
-                return;
+                await ShowError($"Received a QUIT message for {nick} who we can't find!");
             }
         }
 
+#pragma warning disable 1998
         private async Task HandleServerInfoEvent(IrcServerInfoEvent ev)
+#pragma warning restore 1998
         {
             DisplayEvent(ev);
         }
 
+#pragma warning disable 1998
         private async Task HandleUnknownCommandEvent(IrcUnknownCommandEvent ev)
+#pragma warning restore 1998
         {
             DisplayEvent(ev);
         }
 
+#pragma warning disable 1998
+        // ReSharper disable once UnusedParameter.Local
         private async Task HandleUserEvent(IrcUserEvent ev)
+#pragma warning restore 1998
         {
         }
 
+#pragma warning disable 1998
         private async Task HandleUserModeEvent(IrcUserModeEvent ev)
+#pragma warning restore 1998
         {
             if (ev.EventType != IrcEventType.FromServer) return;
             DisplayEvent(ev);
@@ -1095,7 +1127,9 @@ namespace UnIRC.ViewModels
             }
         }
 
+#pragma warning disable 1998
         private async Task HandleWhoItemEvent(IrcWhoItemEvent ev)
+#pragma warning restore 1998
         {
             if (ev.EventType != IrcEventType.FromServer) return;
 
@@ -1107,7 +1141,9 @@ namespace UnIRC.ViewModels
             DisplayEvent(ev);
         }
 
+#pragma warning disable 1998
         private async Task HandleWhoEndEvent(IrcWhoEndEvent ev)
+#pragma warning restore 1998
         {
             if (ev.EventType != IrcEventType.FromServer) return;
 
@@ -1133,19 +1169,22 @@ namespace UnIRC.ViewModels
             DisplayEvent(ev);
         }
 
+#pragma warning disable 1998
         private async Task HandleYourHostEvent(IrcYourHostEvent ev)
+#pragma warning restore 1998
         {
             DisplayEvent(ev);
         }
 
+#pragma warning disable 1998
         private async Task HandleGenericEvent(IrcEvent ev)
+#pragma warning restore 1998
         {
             //string output = String.Join(" ", ev.IrcMessage.Parameters.Skip(1));
             //if (!ev.IrcMessage.Trailing.IsNullOrWhitespace())
             //output += $" :{ev.IrcMessage.Trailing}";
             DisplayEvent(ev);
         }
-
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        
     }
 }

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
-using Windows.Networking;
 using UnIRC.IrcEvents;
 
 namespace UnIRC.Shared.Models
@@ -42,7 +40,7 @@ namespace UnIRC.Shared.Models
             await Connections[connectionId].SendStringAsync(data);
         }
 
-        public HostName GetLocalAddress(int connectionId)
+        public string GetLocalAddress(int connectionId)
         {
             return Connections[connectionId].LocalAddress;
         }

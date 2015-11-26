@@ -78,7 +78,7 @@
                         <AdaptiveTrigger MinWindowWidth="0"/>
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
-                        <Setter Target="ContentMenuButton.Visibility" Value="Visible" />
+                        <Setter Target="PageHeader.Visibility" Value="Visible" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
@@ -191,12 +191,12 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition/>
                     </Grid.RowDefinitions>
-                    <StackPanel Orientation="Horizontal" Height="40" Grid.Row="0">
+                    <StackPanel
+                        x:Name="PageHeader" Visibility="Collapsed"
+                        Orientation="Horizontal" Height="40" Grid.Row="0">
                         <Button
-                            x:Name="ContentMenuButton"
                             Style="{StaticResource NavButtonStyle}"
-                            Click="MenuButton_Click"
-                            Visibility="Collapsed">
+                            Click="MenuButton_Click">
                         </Button>
                         <TextBlock Text="UnIRC" Margin="16,8,0,0" />
                     </StackPanel>

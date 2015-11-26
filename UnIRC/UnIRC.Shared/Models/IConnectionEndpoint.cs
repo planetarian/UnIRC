@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using Windows.Networking;
+﻿using System.Threading.Tasks;
 using UnIRC.IrcEvents;
 
 namespace UnIRC.Shared.Models
@@ -16,6 +12,6 @@ namespace UnIRC.Shared.Models
         Task DisconnectAsync(int connectionId);
         Task<IrcEvent> WaitForEventAsync(int connectionId);
         Task SendStringAsync(int connectionId, string data);
-        HostName GetLocalAddress(int connectionId);
+        string GetLocalAddress(int connectionId);
     }
 }
