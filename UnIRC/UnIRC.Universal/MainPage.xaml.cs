@@ -2,13 +2,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using UnIRC.Models;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Input;
+using UnIRC.Annotations;
 using UnIRC.ViewModels;
 using UnIRC.Views;
 
@@ -16,6 +20,24 @@ namespace UnIRC
 {
     public sealed partial class MainPage
     {
+        public static readonly DependencyProperty IsConnectionSelectedProperty = DependencyProperty.Register(
+            "IsConnectionSelected", typeof (bool), typeof (MainPage), new PropertyMetadata(default(bool)));
+
+        public bool IsConnectionSelected
+        {
+            get { return (bool) GetValue(IsConnectionSelectedProperty); }
+            set { SetValue(IsConnectionSelectedProperty, value); }
+        }
+
+        public static readonly DependencyProperty IsChannelSelectedProperty = DependencyProperty.Register(
+            "IsChannelSelected", typeof (bool), typeof (MainPage), new PropertyMetadata(default(bool)));
+
+        public bool IsChannelSelected
+        {
+            get { return (bool) GetValue(IsChannelSelectedProperty); }
+            set { SetValue(IsChannelSelectedProperty, value); }
+        }
+
         private readonly Dictionary<string, Type> _views
             = new Dictionary<string, Type>
             {
@@ -82,10 +104,16 @@ namespace UnIRC
                 listBox.SelectedItem = null;
             }
 
+            IsConnectionSelected = false;
+            IsChannelSelected = false;
+
             if (list == ConnectionsMenu)
             {
                 if (_connectionPages.ContainsKey(selectedConnection))
+                {
                     ContentFrame.Content = _connectionPages[selectedConnection];
+                    IsConnectionSelected = true;
+                }
             }
             else if (list == ChannelsMenu)
             {
@@ -95,6 +123,7 @@ namespace UnIRC
                     _channelPages[selectedConnection].Add(selectedChannel, view);
                 }
                 ContentFrame.Content = _channelPages[selectedConnection][selectedChannel];
+                IsChannelSelected = true;
             }
             else if (_fixedMenus.Contains(list))
             {
@@ -181,6 +210,34 @@ namespace UnIRC
                 pages.Add(channel, view);
                 connection.SelectedChannel = channel;
             }
+        }
+
+        private void ChannelsMenuTapped(object sender, TappedRoutedEventArgs e)
+        {
+            var vm = DataContext as MainViewModel;
+            if (vm == null) return;
+            ConnectionViewModel selectedConnection = vm.MenuSelectedConnection;
+            ChannelViewModel selectedChannel = selectedConnection?.SelectedChannel;
+
+            if (IsChannelSelected || selectedConnection == null || selectedChannel == null) return;
+
+            ContentFrame.Content = _channelPages[selectedConnection][selectedChannel];
+            IsConnectionSelected = false;
+            IsChannelSelected = true;
+        }
+
+        private void NetworksMenuTapped(object sender, TappedRoutedEventArgs e)
+        {
+            var vm = DataContext as MainViewModel;
+            if (vm == null) return;
+            ConnectionViewModel selectedConnection = vm.MenuSelectedConnection;
+
+            if (IsConnectionSelected || selectedConnection == null) return;
+
+            ContentFrame.Content = _connectionPages[selectedConnection];
+            selectedConnection.SelectedChannel = null;
+            IsChannelSelected = false;
+            IsConnectionSelected = true;
         }
     }
 }

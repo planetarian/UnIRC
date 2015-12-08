@@ -12,6 +12,7 @@ namespace UnIRC.ViewModels
     {
         private INavigationService _navigationService;
 
+
         public ObservableCollection<MenuItem> UpperFixedMenu
         {
             get { return _upperFixedMenu; }
@@ -22,6 +23,13 @@ namespace UnIRC.ViewModels
             {
                 new MenuItem("\uE710", "Connect", "Networks")
             };
+
+        public int UpperFixedMenuSelectedIndex
+        {
+            get { return _upperFixedMenuSelectedIndex; }
+            set { Set(ref _upperFixedMenuSelectedIndex, value); }
+        }
+        private int _upperFixedMenuSelectedIndex;
 
         public ObservableCollection<MenuItem> LowerFixedMenu
         {

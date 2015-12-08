@@ -104,6 +104,7 @@
                         x:Name="UpperFixedMenu"
                         SelectionChanged="MenuSelectionChanged"
                         ItemsSource="{Binding UpperFixedMenu}"
+                        SelectedIndex="{Binding UpperFixedMenuSelectedIndex}"
                         Style="{StaticResource FixedMenuStyle}"
                         Grid.Row="1"/>
                     <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
@@ -116,7 +117,8 @@
                                 x:Name="ConnectionsMenu"
                                 ItemsSource="{Binding Connections, UpdateSourceTrigger=PropertyChanged}"
                                 SelectedItem="{Binding SelectedConnection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                SelectionChanged="MenuSelectionChanged">
+                                SelectionChanged="MenuSelectionChanged"
+                                Tapped="NetworksMenuTapped">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="viewModels:ConnectionViewModel">
                                         <Grid>
@@ -147,7 +149,8 @@
                                     x:Name="ChannelsMenu"
                                     ItemsSource="{Binding Channels, UpdateSourceTrigger=PropertyChanged}"
                                     SelectedItem="{Binding SelectedChannel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    SelectionChanged="MenuSelectionChanged">
+                                    SelectionChanged="MenuSelectionChanged"
+                                    Tapped="ChannelsMenuTapped">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate x:DataType="viewModels:ChannelViewModel">
                                             <Grid>

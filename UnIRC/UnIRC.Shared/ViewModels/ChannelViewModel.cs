@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using GalaSoft.MvvmLight.Ioc;
 using UnIRC.IrcEvents;
 using UnIRC.Models;
 using UnIRC.Shared.Helpers;
@@ -100,6 +101,9 @@ namespace UnIRC.ViewModels
         public ICommand PrevHistoryMessageCommand { get; set; }
         public ICommand NextHistoryMessageCommand { get; set; }
 
+        
+
+        [PreferredConstructor]
         public ChannelViewModel(ConnectionViewModel connection,
             string channelName, IrcUser user, bool isJoined = true)
         {

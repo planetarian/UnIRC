@@ -19,6 +19,8 @@
                         <Setter Target="UsersHeader.IsEnabled" Value="false" />
                         <Setter Target="ChannelPivot.SelectedIndex" Value="0" />
                         <Setter Target="UsersHeader.Visibility" Value="Collapsed" />
+                        <Setter Target="UsersHeader.Opacity" Value="0" />
+                        <Setter Target="UsersHeader.Width" Value="0" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="TabletMode">
@@ -29,6 +31,8 @@
                         <Setter Target="UsersHeader.IsEnabled" Value="false" />
                         <Setter Target="ChannelPivot.SelectedIndex" Value="0" />
                         <Setter Target="UsersHeader.Visibility" Value="Collapsed" />
+                        <Setter Target="UsersHeader.Opacity" Value="0" />
+                        <Setter Target="UsersHeader.Width" Value="0" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="PhoneMode">
