@@ -8,6 +8,7 @@
     xmlns:ircEvents="using:UnIRC.IrcEvents"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:helpers="using:UnIRC.Shared.Helpers"
     mc:Ignorable="d">
     <Application.Resources>
         <ResourceDictionary>
@@ -19,7 +20,8 @@
             <converters:IsNotNullVisibilityConverter x:Key="IsNotNullVisibilityConverter"/>
             <converters:IsTrueVisibilityConverter x:Key="IsTrueVisibilityConverter"/>
             <converters:IsFalseVisibilityConverter x:Key="IsFalseVisibilityConverter"/>
-            
+            <converters:AutoHyperlinkInlinesConverter x:Key="AutoHyperlinkInlinesConverter"/>
+
             <Style x:Key="IconButtonStyle" TargetType="Button">
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
@@ -36,7 +38,10 @@
                 <Setter Property="FontSize" Value="14"/>
             </Style>
             <DataTemplate x:Key="IrcPrivmsgEventConnectionPageTemplate">
-                <TextBlock Text="{Binding TimestampedOutput}" Style="{StaticResource ConnectionPageTemplateStyle}"/>
+                <TextBlock
+                    helpers:InlinesBinding.InlineList="{Binding TimestampedOutput,
+                    Converter={StaticResource AutoHyperlinkInlinesConverter}}"
+                    Style="{StaticResource ConnectionPageTemplateStyle}"/>
             </DataTemplate>
             <DataTemplate x:Key="IrcNickEventConnectionPageTemplate">
                 <TextBlock
@@ -55,8 +60,10 @@
             </DataTemplate>
             <DataTemplate x:Key="IrcNoticeEventConnectionPageTemplate">
                 <TextBlock
+                    helpers:InlinesBinding.InlineList="{Binding TimestampedOutput,
+                    Converter={StaticResource AutoHyperlinkInlinesConverter}}"
                     Style="{StaticResource ConnectionPageTemplateStyle}"
-                    Text="{Binding TimestampedOutput}" Foreground="ForestGreen"/>
+                    Foreground="ForestGreen"/>
             </DataTemplate>
             <DataTemplate x:Key="IrcJoinEventConnectionPageTemplate">
                 <TextBlock
@@ -65,28 +72,38 @@
             </DataTemplate>
             <DataTemplate x:Key="IrcPartEventConnectionPageTemplate">
                 <TextBlock
+                    helpers:InlinesBinding.InlineList="{Binding TimestampedOutput,
+                    Converter={StaticResource AutoHyperlinkInlinesConverter}}"
                     Style="{StaticResource ConnectionPageTemplateStyle}"
-                    Text="{Binding TimestampedOutput}" Foreground="DarkRed"/>
+                    Foreground="DarkRed"/>
             </DataTemplate>
             <DataTemplate x:Key="IrcQuitEventConnectionPageTemplate">
                 <TextBlock
+                    helpers:InlinesBinding.InlineList="{Binding TimestampedOutput,
+                    Converter={StaticResource AutoHyperlinkInlinesConverter}}"
                     Style="{StaticResource ConnectionPageTemplateStyle}"
-                    Text="{Binding TimestampedOutput}" Foreground="DarkRed"/>
+                    Foreground="DarkRed"/>
             </DataTemplate>
             <DataTemplate x:Key="IrcKickEventConnectionPageTemplate">
                 <TextBlock
+                    helpers:InlinesBinding.InlineList="{Binding TimestampedOutput,
+                    Converter={StaticResource AutoHyperlinkInlinesConverter}}"
                     Style="{StaticResource ConnectionPageTemplateStyle}"
-                    Text="{Binding TimestampedOutput}" Foreground="Red"/>
+                    Foreground="Red"/>
             </DataTemplate>
             <DataTemplate x:Key="IrcErrorEventConnectionPageTemplate">
                 <TextBlock
+                    helpers:InlinesBinding.InlineList="{Binding TimestampedOutput,
+                    Converter={StaticResource AutoHyperlinkInlinesConverter}}"
                     Style="{StaticResource ConnectionPageTemplateStyle}"
-                    Text="{Binding TimestampedOutput}" FontWeight="SemiBold" Foreground="Red"/>
+                    FontWeight="SemiBold" Foreground="Red"/>
             </DataTemplate>
             <DataTemplate x:Key="IrcEventConnectionPageTemplate">
                 <TextBlock
+                    helpers:InlinesBinding.InlineList="{Binding TimestampedOutput,
+                    Converter={StaticResource AutoHyperlinkInlinesConverter}}"
                     Style="{StaticResource ConnectionPageTemplateStyle}"
-                    Text="{Binding TimestampedOutput}" Foreground="Gray"/>
+                    Foreground="Gray"/>
             </DataTemplate>
             
             <Style TargetType="Pivot">

@@ -9,9 +9,11 @@
     <Import_RootNamespace>UnIRC.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Converters\AutoHyperlinkInlinesConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\EmptyStringConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\NegateConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\CollectionChangedSubscriber.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\InlinesBinding.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\TypeSwitch.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcChannelEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcCreatedEvent.cs" />

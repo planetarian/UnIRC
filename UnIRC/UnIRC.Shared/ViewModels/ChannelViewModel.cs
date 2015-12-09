@@ -101,9 +101,10 @@ namespace UnIRC.ViewModels
         public ICommand PrevHistoryMessageCommand { get; set; }
         public ICommand NextHistoryMessageCommand { get; set; }
 
-        
+        public ChannelViewModel()
+        {
+        }
 
-        [PreferredConstructor]
         public ChannelViewModel(ConnectionViewModel connection,
             string channelName, IrcUser user, bool isJoined = true)
         {
