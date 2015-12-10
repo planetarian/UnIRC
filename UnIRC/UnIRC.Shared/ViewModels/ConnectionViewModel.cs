@@ -537,12 +537,10 @@ namespace UnIRC.ViewModels
 
         private async Task DisconnectAsync()
         {
-            bool isOpen;
             lock (_connectLock)
             {
                 IsConnected = false;
                 IsConnecting = false;
-                isOpen = IsConnectionOpen;
                 IsConnectionOpen = false;
             }
             await Endpoint.DisconnectAsync(ConnectionId);
@@ -659,10 +657,10 @@ namespace UnIRC.ViewModels
                     // All other read errors
                     errorMessage = $"WaitForDataAsync() Error: {ex.Message}";
                 }
-                catch// (Exception ex)
+                catch (Exception ex)
                 {
-                    //errorMessage = $"WaitForDataAsync() caught while not connected: {ex.Message}";
-                    //await ShowErrorAsync(errorMessage);
+                    errorMessage = $"WaitForDataAsync() caught while not connected: {ex.Message}";
+                    await ShowErrorAsync(errorMessage);
                     return;
                 }//*/
 
@@ -680,6 +678,7 @@ namespace UnIRC.ViewModels
 #if WINDOWS_UWP
         private async void OnSuspending(object o, SuspendingEventArgs a)
         {
+            await ShowErrorAsync("App suspending.");
             if (IsConnected || IsConnecting)
                 await QuitAsync();
         }

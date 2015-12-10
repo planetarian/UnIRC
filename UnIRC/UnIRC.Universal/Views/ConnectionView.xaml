@@ -10,7 +10,7 @@
     xmlns:viewModels="using:UnIRC.ViewModels"
     xmlns:ircEvents="using:UnIRC.IrcEvents"
     d:DataContext="{d:DesignInstance viewModels:ConnectionViewModel}"
-    >
+    Loaded="ConnectionViewLoaded">
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -43,20 +43,20 @@
                 SelectedItem="{Binding Server, Mode=TwoWay,
                 UpdateSourceTrigger=PropertyChanged}"
                 IsEnabled="{Binding IsConnected, Converter={StaticResource NegateConverter}}"
-                HorizontalAlignment="Stretch" DropDownClosed="ServerSelectorClosed"/>
+                HorizontalAlignment="Stretch"/>
             <Button
                 Content="Reconnect" Command="{Binding ReconnectCommand}"
-                HorizontalAlignment="Stretch" Click="InputLostFocus" Grid.Column="1"/>
+                HorizontalAlignment="Stretch" Grid.Column="1"/>
             <Button
                 Content="Disconnect" Command="{Binding DisconnectCommand}"
                 IsEnabled="{Binding CanDisconnect}"
                 Visibility="{Binding CanDisconnect, Converter={StaticResource IsTrueVisibilityConverter}}"
-                HorizontalAlignment="Stretch" Click="InputLostFocus" Grid.Column="2"/>
+                HorizontalAlignment="Stretch" Grid.Column="2"/>
             <Button
                 Content="Cancel Reconnect" Command="{Binding CancelReconnectCommand}"
                 IsEnabled="{Binding IsReconnecting}"
                 Visibility="{Binding IsReconnecting, Converter={StaticResource IsTrueVisibilityConverter}}"
-                HorizontalAlignment="Stretch" Click="InputLostFocus" Grid.Column="2"/>
+                HorizontalAlignment="Stretch" Grid.Column="2"/>
         </Grid>
         <ListBox
             x:Name="Messages"
@@ -65,7 +65,6 @@
             Loaded="MessagesLoaded"
             ItemContainerStyle="{StaticResource EventContainerStyle}"
             ItemTemplateSelector="{StaticResource ConnectionPageTemplateSelector}"
-            GotFocus="InputLostFocus"
             MaxHeight="4000"/>
         <Grid Grid.Row="5">
             <Grid.ColumnDefinitions>
@@ -80,7 +79,6 @@
                 InputScope="Chat" PlaceholderText="Message" TextWrapping="Wrap"
                 ScrollViewer.VerticalScrollBarVisibility="Auto"
                 KeyUp="MessageBoxKeyUp" KeyDown="MessageBoxKeyDown"
-                Loaded="InputLostFocus"
                 Grid.Column="0" Grid.ColumnSpan="2"/>
             <Button
                 Style="{StaticResource IconButtonStyle}"

@@ -7,7 +7,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewModels="using:UnIRC.ViewModels"
     mc:Ignorable="d"
-    d:DataContext="{d:DesignInstance viewModels:ChannelViewModel}">
+    d:DataContext="{d:DesignInstance viewModels:ChannelViewModel}"
+    Loaded="ChannelViewLoaded">
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup>
@@ -70,7 +71,7 @@
                         ItemsSource="{Binding Messages, UpdateSourceTrigger=PropertyChanged}"
                         ItemTemplateSelector="{StaticResource ConnectionPageTemplateSelector}"
                         ItemContainerStyle="{StaticResource EventContainerStyle}"
-                        Loaded="MessagesLoaded" GotFocus="InputLostFocus" Grid.Column="0"/>
+                        Loaded="MessagesLoaded" Grid.Column="0"/>
                     <Grid
                         Grid.Column="1" Width=".7"
                         Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"/>
@@ -78,7 +79,7 @@
                         x:Name="UsersPanel" Width="100"
                         ItemsSource="{Binding Users, UpdateSourceTrigger=PropertyChanged}"
                         ItemContainerStyle="{StaticResource EventContainerStyle}"
-                        DisplayMemberPath="Nick" GotFocus="InputLostFocus" Grid.Column="2"/>
+                        DisplayMemberPath="Nick" Grid.Column="2"/>
                 </Grid>
             </PivotItem>
             <PivotItem
@@ -86,14 +87,13 @@
                 x:Name="UsersHeader" Margin="10,0,10,10">
                 <ListBox
                     ItemsSource="{Binding Users, UpdateSourceTrigger=PropertyChanged}"
-                    DisplayMemberPath="Nick" GotFocus="InputLostFocus"/>
+                    DisplayMemberPath="Nick"/>
             </PivotItem>
 
         </Pivot>
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="239*"/>
-                <ColumnDefinition Width="46*"/>
+                <ColumnDefinition/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <TextBox
@@ -102,12 +102,11 @@
                 InputScope="Chat" PlaceholderText="Message" TextWrapping="Wrap"
                 ScrollViewer.VerticalScrollBarVisibility="Auto"
                 KeyUp="MessageBoxKeyUp" KeyDown="MessageBoxKeyDown"
-                Loaded="InputLostFocus"
-                Grid.Column="0" Grid.ColumnSpan="2"/>
+                Grid.Column="0"/>
             <Button
                 Style="{StaticResource IconButtonStyle}"
                 Command="{Binding SendMessageCommand}"
-                Content="&#xE725;" Grid.Column="2"
+                Content="&#xE725;" Grid.Column="1"
                 Background="Gray"
                 Margin="0" Padding="0"
                 Width="36"

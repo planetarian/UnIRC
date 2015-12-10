@@ -1,4 +1,5 @@
-﻿using Windows.System;
+﻿using System;
+using Windows.System;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Controls;
@@ -17,7 +18,7 @@ namespace UnIRC.Views
     /// </summary>
     public sealed partial class ConnectionView : Page
     {
-        private object _lock = new object();
+        private readonly object _lock = new object();
         private ScrollViewer _messagesScrollViewer;
         private ScrollBar _messagesScrollBar;
         private double _lastVerticalOffset;
@@ -27,9 +28,18 @@ namespace UnIRC.Views
         private double _lastScrollViewerHeight;
         private bool _enterPressed;
 
+        private readonly DispatcherTimer _focusTimer = new DispatcherTimer();
+
         public ConnectionView()
         {
             InitializeComponent();
+        }
+
+        private void ConnectionViewLoaded(object sender, RoutedEventArgs e)
+        {
+            _focusTimer.Interval = TimeSpan.FromMilliseconds(100);
+            _focusTimer.Tick += (s, o) => InputBox.Focus(FocusState.Programmatic);
+            _focusTimer.Start();
         }
 
         private void MessageBoxKeyDown(object sender, KeyRoutedEventArgs e)
@@ -104,21 +114,6 @@ namespace UnIRC.Views
                 _lastScrollViewerHeight = scrollViewerHeight;
 
             }
-        }
-
-        private void InputLostFocus(object sender, RoutedEventArgs e)
-        {
-            FocusInputBox();
-        }
-
-        private void ServerSelectorClosed(object sender, object e)
-        {
-            FocusInputBox();
-        }
-
-        private void FocusInputBox()
-        {
-            InputBox.Focus(FocusState.Programmatic);
         }
     }
 }

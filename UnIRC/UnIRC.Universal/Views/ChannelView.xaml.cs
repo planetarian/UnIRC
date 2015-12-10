@@ -32,11 +32,22 @@ namespace UnIRC.Views
         private double _lastExtentHeight;
         private double _lastViewportHeight;
         private double _lastScrollViewerHeight;
+
+        private bool _ctrlPressed;
         private bool _enterPressed;
+
+        private readonly DispatcherTimer _focusTimer = new DispatcherTimer();
 
         public ChannelView()
         {
             InitializeComponent();
+        }
+
+        private void ChannelViewLoaded(object sender, RoutedEventArgs e)
+        {
+            _focusTimer.Interval = TimeSpan.FromMilliseconds(100);
+            _focusTimer.Tick += (s, o) => InputBox.Focus(FocusState.Programmatic);
+            _focusTimer.Start();
         }
 
         private void MessageBoxKeyDown(object sender, KeyRoutedEventArgs e)
@@ -50,6 +61,11 @@ namespace UnIRC.Views
                     if (_enterPressed) return;
                     _enterPressed = true;
                     vm.SendMessageCommand.Execute(null);
+                    break;
+                case VirtualKey.Control:
+                    if (_ctrlPressed) return;
+                    _ctrlPressed = true;
+                    vm.SendSlashMessageToChannel = true;
                     break;
                 case VirtualKey.Up:
                     vm.PrevHistoryMessageCommand.Execute(null);
@@ -67,6 +83,11 @@ namespace UnIRC.Views
             {
                 case VirtualKey.Enter:
                     _enterPressed = false;
+                    break;
+                case VirtualKey.Control:
+                    if (!_ctrlPressed) return;
+                    _ctrlPressed = false;
+                    vm.SendSlashMessageToChannel = false;
                     break;
                 case VirtualKey.Down:
                     vm.NextHistoryMessageCommand.Execute(null);
@@ -113,21 +134,6 @@ namespace UnIRC.Views
                 _lastScrollViewerHeight = scrollViewerHeight;
 
             }
-        }
-
-        private void InputLostFocus(object sender, RoutedEventArgs e)
-        {
-            FocusInputBox();
-        }
-
-        private void ServerSelectorClosed(object sender, object e)
-        {
-            FocusInputBox();
-        }
-
-        private void FocusInputBox()
-        {
-            InputBox.Focus(FocusState.Programmatic);
         }
     }
 }

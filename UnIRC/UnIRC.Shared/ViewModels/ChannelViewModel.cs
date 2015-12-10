@@ -95,6 +95,13 @@ namespace UnIRC.ViewModels
         }
         private bool _isActive;
 
+        public bool SendSlashMessageToChannel
+        {
+            get { return _sendSlashMessageToChannel; }
+            set { Set(ref _sendSlashMessageToChannel, value); }
+        }
+        private bool _sendSlashMessageToChannel;
+
 
 
         public ICommand SendMessageCommand { get; set; }
@@ -112,8 +119,9 @@ namespace UnIRC.ViewModels
             ChannelName = channelName;
             Users.Add(user);
             IsJoined = isJoined;
-            
+
             SendMessageCommand = GetCommand(async () => await SendMessageToChannelAsync());
+
             PrevHistoryMessageCommand = GetCommand(PrevHistoryMessage,
                 () => CurrentMessageHistoryIndex > 0,
                 () => CurrentMessageHistoryIndex);
@@ -143,16 +151,24 @@ namespace UnIRC.ViewModels
 
         private async Task SendMessageToChannelAsync()
         {
+            bool sendSlashMessage = SendSlashMessageToChannel;
             string inputMessage = InputMessage;
+
+            if (inputMessage.IsNullOrWhitespace() || inputMessage == "/")
+                return;
+
             InputMessage = "";
             MessagesSent.Add(inputMessage);
             CurrentMessageHistoryIndex = MessagesSent.Count;
-            const string rawCommand = "/raw ";
-            if (inputMessage.StartsWith(rawCommand) && inputMessage.Length > rawCommand.Length)
-                await Connection.SendMessageAsync(inputMessage.Substring(5));
-            else
+            
+            if (sendSlashMessage || !inputMessage.StartsWith("/"))
                 await Connection.SendMessageAsync($"PRIVMSG {ChannelName} :{inputMessage}");
-
+            else if (inputMessage.StartsWith("/me "))
+                await Connection.SendMessageAsync(
+                    $"PRIVMSG {ChannelName} :\x0001ACTION {inputMessage.Substring(4)}\x0001");
+            else // slash messages to be sent as raw commands
+                await Connection.SendMessageAsync(inputMessage.Substring(1));
+            
         }
     }
 }

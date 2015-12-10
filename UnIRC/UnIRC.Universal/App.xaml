@@ -9,7 +9,10 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:helpers="using:UnIRC.Shared.Helpers"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+    xmlns:core="using:Microsoft.Xaml.Interactions.Core" 
+    >
     <Application.Resources>
         <ResourceDictionary>
             <viewModels:ViewModelLocator x:Key="Locator"/>
@@ -41,7 +44,15 @@
                 <TextBlock
                     helpers:InlinesBinding.InlineList="{Binding TimestampedOutput,
                     Converter={StaticResource AutoHyperlinkInlinesConverter}}"
-                    Style="{StaticResource ConnectionPageTemplateStyle}"/>
+                    Style="{StaticResource ConnectionPageTemplateStyle}"
+                    x:Name="PrivmsgBlock">
+                    <interactivity:Interaction.Behaviors>
+                        <core:DataTriggerBehavior Binding="{Binding IsAction}" Value="True">
+                            <core:ChangePropertyAction TargetObject="{Binding ElementName=PrivmsgBlock}"
+                                                       PropertyName="Foreground" Value="Purple"/>
+                        </core:DataTriggerBehavior>
+                    </interactivity:Interaction.Behaviors>
+                </TextBlock>
             </DataTemplate>
             <DataTemplate x:Key="IrcNickEventConnectionPageTemplate">
                 <TextBlock
