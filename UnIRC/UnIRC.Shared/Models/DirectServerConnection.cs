@@ -25,11 +25,18 @@ namespace UnIRC.Shared.Models
         public bool IsDisconnecting { get; set; }
         public string CurrentReadData { get; set; } = "";
         private const int _connectTimeoutSeconds = 20;
-        private const int _readTimeoutSeconds = 60*5;
+        private const int _readTimeoutSeconds = 60;//*5;
         private const int _sendTimeoutSeconds = 60;
         private readonly object _connectLock = new object();
         private readonly object _readDataLock = new object();
         private readonly SemaphoreSlim _asyncLock = new SemaphoreSlim(1);
+
+        private DateTime _lastSocketActivity = DateTime.MinValue;
+#if WINDOWS_UWP
+        private CancellationTokenSource _cts;
+        private int _ctsId;
+#endif
+
 
 #if WINDOWS_UWP
         public StreamSocket Socket { get; set; }
@@ -71,10 +78,8 @@ namespace UnIRC.Shared.Models
                 await DisconnectAsync();
                 throw new TimeoutException("Connect timed out.");
             }
-            catch
-            {
-                throw;
-            }
+
+            _lastSocketActivity = DateTime.Now;
 
             Reader = new DataReader(Socket.InputStream)
             {
@@ -84,6 +89,11 @@ namespace UnIRC.Shared.Models
 
             IsConnected = true;
             IsConnecting = false;
+
+            _ctsId++;
+            _cts = new CancellationTokenSource();
+            // ReSharper disable once UnusedVariable
+            Task task = CheckCloseSocket(_ctsId);
 #else
             throw new NotImplementedException();
 #endif
@@ -135,6 +145,7 @@ namespace UnIRC.Shared.Models
 #if WINDOWS_UWP
             const int bufferLength = 250;
             const string nl = "\r\n";
+
             while (true)
             {
                 lock (_readDataLock)
@@ -153,7 +164,7 @@ namespace UnIRC.Shared.Models
                 uint bytesRead;
                 try
                 {
-                    bytesRead = await Reader.LoadAsync(bufferLength).WithTimeout(_readTimeoutSeconds);
+                    bytesRead = await Reader.LoadAsync(bufferLength).AsTask(_cts.Token);
                 }
                 catch (ObjectDisposedException ex)
                 {
@@ -162,6 +173,14 @@ namespace UnIRC.Shared.Models
                 catch (COMException ex)
                 {
                     throw new OperationCanceledException("Socket disconnected by user.", ex);
+                }
+                catch (TaskCanceledException ex)
+                {
+                    if (IsDisconnecting)
+                        throw new OperationCanceledException("Socket disconnected by user.", ex);
+
+                    await DisconnectAsync();
+                    throw new TimeoutException("Connect timed out.", ex);
                 }
                 catch (Exception ex) when (
                     SocketError.GetStatus(ex.HResult) == SocketErrorStatus.SoftwareCausedConnectionAbort ||
@@ -176,20 +195,11 @@ namespace UnIRC.Shared.Models
                     SocketError.GetStatus(ex.HResult) == SocketErrorStatus.UnreachableHost)
                 {
                     // We closed the connection and cleanly disposed the reader
-                    throw new OperationCanceledException($"Socket disconnected. ({SocketError.GetStatus(ex.HResult)})", ex);
+                    throw new OperationCanceledException($"Socket disconnected. ({SocketError.GetStatus(ex.HResult)})",
+                        ex);
                 }
-                catch (TaskCanceledException ex)
-                {
-                    if (IsDisconnecting)
-                        throw new OperationCanceledException("Socket disconnected by user.", ex);
 
-                    await DisconnectAsync();
-                    throw new TimeoutException("Connect timed out.", ex);
-                }
-                catch
-                {
-                    throw;
-                }
+                _lastSocketActivity = DateTime.Now;
 
                 if (bytesRead == 0)
                 {
@@ -238,10 +248,8 @@ namespace UnIRC.Shared.Models
             {
                 // Race condition -- Socket was null-referenced right after we checked
             }
-            catch
-            {
-                throw;
-            }
+
+            _lastSocketActivity = DateTime.Now;
 #else
             throw new NotImplementedException();
 #endif
@@ -257,5 +265,19 @@ namespace UnIRC.Shared.Models
             get { throw new NotImplementedException(); }
         }
 #endif
+
+#if WINDOWS_UWP
+        public async Task CheckCloseSocket(int ctsId)
+        {
+            while (IsConnected && _ctsId == ctsId)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5));
+                if (DateTime.Now > _lastSocketActivity.Add(TimeSpan.FromSeconds(_readTimeoutSeconds)))
+                    break;
+            }
+            _cts.CancelAfter(1);
+        }
+#endif
+
     }
 }
