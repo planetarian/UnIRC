@@ -25,7 +25,7 @@ namespace UnIRC.Shared.Models
         public bool IsDisconnecting { get; set; }
         public string CurrentReadData { get; set; } = "";
         private const int _connectTimeoutSeconds = 20;
-        private const int _readTimeoutSeconds = 60;//*5;
+        private const int _readTimeoutSeconds = 60*5;
         private const int _sendTimeoutSeconds = 60;
         private readonly object _connectLock = new object();
         private readonly object _readDataLock = new object();

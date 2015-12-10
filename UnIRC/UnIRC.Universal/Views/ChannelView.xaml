@@ -6,6 +6,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewModels="using:UnIRC.ViewModels"
+    xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+    xmlns:core="using:Microsoft.Xaml.Interactions.Core"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance viewModels:ChannelViewModel}"
     Loaded="ChannelViewLoaded">
@@ -19,9 +21,8 @@
                     <VisualState.Setters>
                         <Setter Target="UsersHeader.IsEnabled" Value="false" />
                         <Setter Target="ChannelPivot.SelectedIndex" Value="0" />
+                        <Setter Target="UsersPanel.Visibility" Value="Visible" />
                         <Setter Target="UsersHeader.Visibility" Value="Collapsed" />
-                        <Setter Target="UsersHeader.Opacity" Value="0" />
-                        <Setter Target="UsersHeader.Width" Value="0" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="TabletMode">
@@ -31,9 +32,8 @@
                     <VisualState.Setters>
                         <Setter Target="UsersHeader.IsEnabled" Value="false" />
                         <Setter Target="ChannelPivot.SelectedIndex" Value="0" />
+                        <Setter Target="UsersPanel.Visibility" Value="Visible" />
                         <Setter Target="UsersHeader.Visibility" Value="Collapsed" />
-                        <Setter Target="UsersHeader.Opacity" Value="0" />
-                        <Setter Target="UsersHeader.Width" Value="0" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="PhoneMode">
@@ -42,7 +42,6 @@
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
                         <Setter Target="UsersHeader.IsEnabled" Value="true" />
-                        <Setter Target="UsersHeader.Header" Value="users" />
                         <Setter Target="UsersPanel.Visibility" Value="Collapsed" />
                         <Setter Target="UsersHeader.Visibility" Value="Visible" />
                     </VisualState.Setters>
@@ -76,18 +75,32 @@
                         Grid.Column="1" Width=".7"
                         Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"/>
                     <ListBox
-                        x:Name="UsersPanel" Width="100"
+                        x:Name="UsersPanelList"
                         ItemsSource="{Binding Users, UpdateSourceTrigger=PropertyChanged}"
                         ItemContainerStyle="{StaticResource EventContainerStyle}"
-                        DisplayMemberPath="Nick" Grid.Column="2"/>
+                        DisplayMemberPath="Nick" Grid.Column="2">
+                        <interactivity:Interaction.Behaviors>
+                            <core:DataTriggerBehavior Binding="{Binding IsJoined}" Value="False">
+                                <core:ChangePropertyAction TargetObject="{Binding ElementName=UsersPanelList}"
+                                                        PropertyName="IsEnabled" Value="False"/>
+                            </core:DataTriggerBehavior>
+                        </interactivity:Interaction.Behaviors>
+                    </ListBox>
                 </Grid>
             </PivotItem>
-            <PivotItem
-                Header="{Binding Title, Converter={StaticResource EmptyStringConverter}}"
-                x:Name="UsersHeader" Margin="10,0,10,10">
+            <PivotItem Header="users" x:Name="UsersHeader" Margin="10,0,10,10">
                 <ListBox
+                    x:Name="UsersPivotList"
                     ItemsSource="{Binding Users, UpdateSourceTrigger=PropertyChanged}"
-                    DisplayMemberPath="Nick"/>
+                    ItemContainerStyle="{StaticResource EventContainerStyle}"
+                    DisplayMemberPath="Nick">
+                    <interactivity:Interaction.Behaviors>
+                        <core:DataTriggerBehavior Binding="{Binding IsJoined}" Value="False">
+                            <core:ChangePropertyAction TargetObject="{Binding ElementName=UsersPivotList}"
+                                                        PropertyName="IsEnabled" Value="False"/>
+                        </core:DataTriggerBehavior>
+                    </interactivity:Interaction.Behaviors>
+                </ListBox>
             </PivotItem>
 
         </Pivot>
