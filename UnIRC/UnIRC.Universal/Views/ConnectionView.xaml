@@ -15,24 +15,11 @@
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="{Binding DisplayName}" Margin="10,3" Grid.Row="0"/>
-        <TextBlock Text="{Binding Server.DisplayName}" Margin="10,3" Grid.Row="1"/>
-        <Grid Grid.Row="2" Margin="10,3">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Text="{Binding IsConnected}"/>
-            <TextBlock Text="{Binding UnreadMessages}" Grid.Column="1"/>
-        </Grid>
-        <Grid Grid.Row="3">
+        <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*"/>
                 <ColumnDefinition/>
@@ -66,13 +53,13 @@
         <ListBox
             x:Name="Messages"
             ItemsSource="{Binding Messages}"
-            Grid.Row="4"
+            Grid.Row="1"
             Loaded="MessagesLoaded"
             ItemContainerStyle="{StaticResource EventContainerStyle}"
             ItemTemplateSelector="{StaticResource ConnectionPageTemplateSelector}"
             MaxHeight="4000"
             GotFocus="ButtonClicked"/>
-        <Grid Grid.Row="5">
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="239*"/>
                 <ColumnDefinition Width="46*"/>
