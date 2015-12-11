@@ -11,7 +11,7 @@
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance viewModels:ChannelViewModel}"
     Loaded="ViewLoaded"
-    PointerEntered="PointerEntered">
+    PointerEntered="ViewPointerEntered">
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup>

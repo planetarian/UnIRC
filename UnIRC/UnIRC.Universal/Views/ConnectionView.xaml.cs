@@ -34,7 +34,7 @@ namespace UnIRC.Views
             InitializeComponent();
         }
 
-        private void ConnectionView_OnPointerEntered(object sender, PointerRoutedEventArgs e)
+        private void ViewPointerEntered(object sender, PointerRoutedEventArgs e)
         {
             _autoRefocus = e.Pointer.PointerDeviceType != PointerDeviceType.Touch;
         }
