@@ -267,6 +267,7 @@ namespace UnIRC.ViewModels
         public ICommand PrevHistoryMessageCommand { get; set; }
         public ICommand NextHistoryMessageCommand { get; set; }
         public ICommand CancelReconnectCommand { get; set; }
+        public ICommand SuspendCommand { get; set; }
 
         #endregion ViewModel properties
 
@@ -299,9 +300,6 @@ namespace UnIRC.ViewModels
         public ConnectionViewModel(Network network, Server server, UserInfo userInfo,
             IConnectionEndpoint endpoint)
         {
-#if WINDOWS_UWP
-            Application.Current.Suspending += OnSuspending;
-#endif
 
             if (IsInDesignModeStatic || IsInDesignMode) return;
 
@@ -350,6 +348,7 @@ namespace UnIRC.ViewModels
             NextHistoryMessageCommand = GetCommand(NextHistoryMessage,
                 () => !InputMessage.IsNullOrEmpty() && CurrentMessageHistoryIndex <= MessagesSent.Count,
                 () => CurrentMessageHistoryIndex);
+            SuspendCommand = GetCommand(async () => await Suspend());
 
             Network = network;
             Servers = network.Servers.ToObservable();
@@ -370,6 +369,13 @@ namespace UnIRC.ViewModels
             // ReSharper disable once UnusedVariable
             Task processTask = ProcessEventsAsync();
             IsReconnecting = true;
+        }
+
+        private async Task Suspend()
+        {
+            await ShowErrorAsync("App suspending.");
+            if (IsConnected || IsConnecting)
+                await QuitAsync();
         }
 
         private async Task ProcessEventsAsync()
@@ -674,16 +680,7 @@ namespace UnIRC.ViewModels
                 return;
             }
         }
-
-#if WINDOWS_UWP
-        private async void OnSuspending(object o, SuspendingEventArgs a)
-        {
-            await ShowErrorAsync("App suspending.");
-            if (IsConnected || IsConnecting)
-                await QuitAsync();
-        }
-#endif
-
+        
         private async Task HandleIrcEventAsync(IrcEvent ev)
         {
             using (await _eventProcessingLock.LockAsync())

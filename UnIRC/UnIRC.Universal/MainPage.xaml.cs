@@ -5,6 +5,8 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Windows.ApplicationModel;
+using Windows.ApplicationModel.ExtendedExecution.Foreground;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI.ViewManagement;
@@ -12,7 +14,9 @@ using Windows.UI.Xaml;
 using UnIRC.Models;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
+using GalaSoft.MvvmLight.Messaging;
 using UnIRC.Annotations;
+using UnIRC.Shared.Messages;
 using UnIRC.ViewModels;
 using UnIRC.Views;
 
@@ -59,10 +63,43 @@ namespace UnIRC
         {
             InitializeComponent();
             ApplicationView.GetForCurrentView().SetPreferredMinSize(new Size(340, 530));
+            Application.Current.Suspending += OnSuspending;
 
             _allMenus = new[] {UpperFixedMenu, ConnectionsMenu, ChannelsMenu, LowerFixedMenu};
             _fixedMenus = new[] {UpperFixedMenu, LowerFixedMenu};
-            
+
+        }
+        private async void OnSuspending(object o, SuspendingEventArgs ev)
+        {
+            Messenger.Default.Send(new ErrorMessage("Attempting to extend suspension."));
+            SuspendingDeferral deferral = ev.SuspendingOperation.GetDeferral();
+            using (var session = new ExtendedExecutionForegroundSession
+            {Reason = ExtendedExecutionForegroundReason.Unconstrained})
+            {
+                session.Description = "Extend IRC session";
+                session.Revoked += (s, e) => { SuspendAll(); };
+                try
+                {
+                    if (await session.RequestExtensionAsync() == ExtendedExecutionForegroundResult.Denied)
+                        SuspendAll();
+                }
+                catch (Exception ex)
+                {
+                    Messenger.Default.Send(new ErrorMessage("Exception while deferring suspension.", ex));
+                }
+            }
+
+
+        }
+
+        private void SuspendAll()
+        {
+            Messenger.Default.Send(new ErrorMessage("Suspending."));
+
+            var vm = DataContext as MainViewModel;
+            if (vm == null) return;
+            foreach (ConnectionViewModel cvm in vm.Connections)
+                cvm.SuspendCommand.Execute(null);
         }
 
         private void ConnectionsChanged(IObservableVector<object> sender, IVectorChangedEventArgs ev)
