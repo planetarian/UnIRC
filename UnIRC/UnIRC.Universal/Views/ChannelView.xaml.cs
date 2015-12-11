@@ -89,6 +89,7 @@ namespace UnIRC.Views
                     break;
                 case VirtualKey.Up:
                     vm.PrevHistoryMessageCommand.Execute(null);
+                    InputBox.Select(InputBox.Text.Length, 0);
                     break;
             }
         }
@@ -111,6 +112,7 @@ namespace UnIRC.Views
                     break;
                 case VirtualKey.Down:
                     vm.NextHistoryMessageCommand.Execute(null);
+                    InputBox.Select(InputBox.Text.Length, 0);
                     break;
             }
         }

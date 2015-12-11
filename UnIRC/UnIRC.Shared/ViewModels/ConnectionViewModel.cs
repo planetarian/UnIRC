@@ -600,10 +600,21 @@ namespace UnIRC.ViewModels
         public async Task SendMessageAsync()
         {
             string inputMessage = InputMessage;
+            if (!inputMessage.StartsWith("/"))
+            {
+                await ShowErrorAsync(
+                    @"This is not a channel. To issue a command, use a forward slash, e.g. /join #somechannel");
+                return;
+            }
+            if (inputMessage.Length <= 1)
+            {
+                await ShowErrorAsync(@"No command specified. For a list of commands, type /help");
+                return;
+            }
             MessagesSent.Add(inputMessage);
             CurrentMessageHistoryIndex = MessagesSent.Count;
             InputMessage = "";
-            await SendMessageAsync(inputMessage);
+            await SendMessageAsync(inputMessage.Substring(1));
         }
 
         public async Task SendMessageAsync(string message)
