@@ -27,7 +27,7 @@ namespace UnIRC.Views
         private double _lastExtentHeight;
         private double _lastViewportHeight;
         private bool _enterPressed;
-        private bool _autoRefocus;
+        private bool _autoRefocus = true;
 
         public ConnectionView()
         {

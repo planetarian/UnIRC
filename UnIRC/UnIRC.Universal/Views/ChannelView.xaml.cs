@@ -37,7 +37,7 @@ namespace UnIRC.Views
         private bool _ctrlPressed;
         private bool _enterPressed;
 
-        private bool _autoRefocus;
+        private bool _autoRefocus = true;
 
         public ChannelView()
         {
