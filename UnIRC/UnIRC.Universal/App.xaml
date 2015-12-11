@@ -42,10 +42,10 @@
             </Style>
             <DataTemplate x:Key="IrcPrivmsgEventConnectionPageTemplate">
                 <TextBlock
-                    helpers:InlinesBinding.InlineList="{Binding TimestampedOutput,
-                    Converter={StaticResource AutoHyperlinkInlinesConverter}}"
                     Style="{StaticResource ConnectionPageTemplateStyle}"
-                    x:Name="PrivmsgBlock">
+                    x:Name="PrivmsgBlock"
+                    helpers:InlinesBinding.InlineList="{Binding TimestampedOutput,
+                    Converter={StaticResource AutoHyperlinkInlinesConverter}}">
                     <interactivity:Interaction.Behaviors>
                         <core:DataTriggerBehavior Binding="{Binding IsAction}" Value="True">
                             <core:ChangePropertyAction TargetObject="{Binding ElementName=PrivmsgBlock}"

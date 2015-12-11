@@ -10,7 +10,8 @@
     xmlns:viewModels="using:UnIRC.ViewModels"
     xmlns:ircEvents="using:UnIRC.IrcEvents"
     d:DataContext="{d:DesignInstance viewModels:ConnectionViewModel}"
-    Loaded="ConnectionViewLoaded">
+    Loaded="ViewLoaded"
+    PointerEntered="ConnectionView_OnPointerEntered">
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -43,20 +44,24 @@
                 SelectedItem="{Binding Server, Mode=TwoWay,
                 UpdateSourceTrigger=PropertyChanged}"
                 IsEnabled="{Binding IsConnected, Converter={StaticResource NegateConverter}}"
-                HorizontalAlignment="Stretch"/>
+                HorizontalAlignment="Stretch"
+                DropDownClosed="DropDownClosed"/>
             <Button
                 Content="Reconnect" Command="{Binding ReconnectCommand}"
-                HorizontalAlignment="Stretch" Grid.Column="1"/>
+                HorizontalAlignment="Stretch" Grid.Column="1"
+                Click="ButtonClicked"/>
             <Button
                 Content="Disconnect" Command="{Binding DisconnectCommand}"
                 IsEnabled="{Binding CanDisconnect}"
                 Visibility="{Binding CanDisconnect, Converter={StaticResource IsTrueVisibilityConverter}}"
-                HorizontalAlignment="Stretch" Grid.Column="2"/>
+                HorizontalAlignment="Stretch" Grid.Column="2"
+                Click="ButtonClicked"/>
             <Button
                 Content="Cancel Reconnect" Command="{Binding CancelReconnectCommand}"
                 IsEnabled="{Binding IsReconnecting}"
                 Visibility="{Binding IsReconnecting, Converter={StaticResource IsTrueVisibilityConverter}}"
-                HorizontalAlignment="Stretch" Grid.Column="2"/>
+                HorizontalAlignment="Stretch" Grid.Column="2"
+                Click="ButtonClicked"/>
         </Grid>
         <ListBox
             x:Name="Messages"
@@ -65,7 +70,8 @@
             Loaded="MessagesLoaded"
             ItemContainerStyle="{StaticResource EventContainerStyle}"
             ItemTemplateSelector="{StaticResource ConnectionPageTemplateSelector}"
-            MaxHeight="4000"/>
+            MaxHeight="4000"
+            GotFocus="ButtonClicked"/>
         <Grid Grid.Row="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="239*"/>
@@ -87,7 +93,8 @@
                 Background="Gray"
                 Margin="0" Padding="0"
                 Width="36"
-                VerticalAlignment="Stretch"/>
+                VerticalAlignment="Stretch"
+                Click="ButtonClicked"/>
         </Grid>
 
     </Grid>

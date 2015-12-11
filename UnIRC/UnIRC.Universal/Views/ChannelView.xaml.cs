@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using Windows.Devices.Input;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.System;
@@ -36,18 +37,37 @@ namespace UnIRC.Views
         private bool _ctrlPressed;
         private bool _enterPressed;
 
-        private readonly DispatcherTimer _focusTimer = new DispatcherTimer();
+        private bool _autoRefocus;
 
         public ChannelView()
         {
             InitializeComponent();
         }
 
-        private void ChannelViewLoaded(object sender, RoutedEventArgs e)
+        private void PointerEntered(object sender, PointerRoutedEventArgs e)
         {
-            _focusTimer.Interval = TimeSpan.FromMilliseconds(100);
-            _focusTimer.Tick += (s, o) => InputBox.Focus(FocusState.Programmatic);
-            _focusTimer.Start();
+            _autoRefocus = e.Pointer.PointerDeviceType != PointerDeviceType.Touch;
+        }
+
+        private void ViewLoaded(object sender, RoutedEventArgs e)
+        {
+            FocusInput();
+        }
+
+        private void ButtonClicked(object sender, RoutedEventArgs e)
+        {
+            FocusInput();
+        }
+
+        private void DropDownClosed(object sender, object e)
+        {
+            FocusInput();
+        }
+
+        private void FocusInput()
+        {
+            if (_autoRefocus)
+                InputBox.Focus(FocusState.Programmatic);
         }
 
         private void MessageBoxKeyDown(object sender, KeyRoutedEventArgs e)

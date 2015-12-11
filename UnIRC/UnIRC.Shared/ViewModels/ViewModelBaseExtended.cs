@@ -20,6 +20,9 @@ namespace UnIRC.ViewModels
 #if WINDOWS_UWP
         protected static readonly ApplicationDataContainer RoamingSettings
             = ApplicationData.Current.RoamingSettings;
+
+        protected static readonly ApplicationDataContainer LocalSettings
+            = ApplicationData.Current.LocalSettings;
 #endif
 
         public string Title { get; protected set; }
@@ -38,6 +41,7 @@ namespace UnIRC.ViewModels
 
         protected static void SaveRoamingSetting(string key, object value)
         {
+
 #if WINDOWS_UWP
             RoamingSettings.Values[key] = value;
 #else
@@ -49,6 +53,24 @@ namespace UnIRC.ViewModels
         {
 #if WINDOWS_UWP
             return RoamingSettings.Values[key];
+#else
+            throw new NotImplementedException();
+#endif
+        }
+
+        protected static void SaveLocalSetting(string key, object value)
+        {
+#if WINDOWS_UWP
+            LocalSettings.Values[key] = value;
+#else
+            throw new NotImplementedException();
+#endif
+        }
+
+        protected static object GetLocalSetting(string key)
+        {
+#if WINDOWS_UWP
+            return LocalSettings.Values[key];
 #else
             throw new NotImplementedException();
 #endif

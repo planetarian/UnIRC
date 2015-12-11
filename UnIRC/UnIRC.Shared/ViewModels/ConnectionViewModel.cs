@@ -308,7 +308,12 @@ namespace UnIRC.ViewModels
             ConnectionId = _nextConnectionId++;
 
             this.OnChanged(x => x.IsConnectionOpen, x => x.IsConnected, x => x.IsConnecting, x => x.IsReconnecting)
-                .Do(() => CanDisconnect = IsConnecting || IsConnectionOpen || IsConnected);
+                .DoOnUI(() =>
+                {
+                    CanDisconnect = IsConnecting || IsConnectionOpen || IsConnected;
+                    // ReSharper disable once ExplicitCallerInfoArgument
+                    RaisePropertyChanged(nameof(CanDisconnect));
+                });
             this.OnChanged(x => x.Network, x => x.Nick)
                 .Do(() => DisplayName = $"{Network?.Name} ({Nick})");
             this.OnChanged(x => x.InputMessage).Do(
@@ -339,8 +344,9 @@ namespace UnIRC.ViewModels
 
             ReconnectCommand = GetCommand(async () => await ReconnectAsync());
             CancelReconnectCommand = GetCommand(async () => await CancelReconnectAsync());
-            DisconnectCommand = GetCommand(async () => await QuitAsync(),
-                () => CanDisconnect, () => CanDisconnect);
+            DisconnectCommand = GetCommand(async () => await QuitAsync()
+            ,() => CanDisconnect, () => CanDisconnect
+            );
             SendMessageCommand = GetCommand(async () => await SendMessageAsync(),
                 () => !InputMessage.IsNullOrEmpty(),
                 () => InputMessage);
