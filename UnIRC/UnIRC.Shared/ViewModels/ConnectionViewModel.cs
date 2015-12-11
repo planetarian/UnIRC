@@ -306,7 +306,12 @@ namespace UnIRC.ViewModels
             ConnectionId = _nextConnectionId++;
 
             this.OnChanged(x => x.IsConnectionOpen, x => x.IsConnected, x => x.IsConnecting, x => x.IsReconnecting)
-                .Do(() => CanDisconnect = IsConnecting || IsConnectionOpen || IsConnected);
+                .DoOnUI(() =>
+                {
+                    CanDisconnect = IsConnecting || IsConnectionOpen || IsConnected;
+                    // ReSharper disable once ExplicitCallerInfoArgument
+                    RaisePropertyChanged(nameof(CanDisconnect));
+                });
             this.OnChanged(x => x.Network, x => x.Nick)
                 .Do(() => DisplayName = $"{Network?.Name} ({Nick})");
             this.OnChanged(x => x.InputMessage).Do(
@@ -337,8 +342,9 @@ namespace UnIRC.ViewModels
 
             ReconnectCommand = GetCommand(async () => await ReconnectAsync());
             CancelReconnectCommand = GetCommand(async () => await CancelReconnectAsync());
-            DisconnectCommand = GetCommand(async () => await QuitAsync(),
-                () => CanDisconnect, () => CanDisconnect);
+            DisconnectCommand = GetCommand(async () => await QuitAsync()
+            ,() => CanDisconnect, () => CanDisconnect
+            );
             SendMessageCommand = GetCommand(async () => await SendMessageAsync(),
                 () => !InputMessage.IsNullOrEmpty(),
                 () => InputMessage);
@@ -600,10 +606,21 @@ namespace UnIRC.ViewModels
         public async Task SendMessageAsync()
         {
             string inputMessage = InputMessage;
+            if (!inputMessage.StartsWith("/"))
+            {
+                await ShowErrorAsync(
+                    @"This is not a channel. To issue a command, use a forward slash, e.g. /join #somechannel");
+                return;
+            }
+            if (inputMessage.Length <= 1)
+            {
+                await ShowErrorAsync(@"No command specified. For a list of commands, type /help");
+                return;
+            }
             MessagesSent.Add(inputMessage);
             CurrentMessageHistoryIndex = MessagesSent.Count;
             InputMessage = "";
-            await SendMessageAsync(inputMessage);
+            await SendMessageAsync(inputMessage.Substring(1));
         }
 
         public async Task SendMessageAsync(string message)

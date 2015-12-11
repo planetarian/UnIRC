@@ -1,4 +1,5 @@
 ﻿using System;
+using Windows.Devices.Input;
 using Windows.System;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
@@ -25,21 +26,38 @@ namespace UnIRC.Views
         private double _earlyExtentHeight;
         private double _lastExtentHeight;
         private double _lastViewportHeight;
-        private double _lastScrollViewerHeight;
         private bool _enterPressed;
-
-        private readonly DispatcherTimer _focusTimer = new DispatcherTimer();
+        private bool _autoRefocus = true;
 
         public ConnectionView()
         {
             InitializeComponent();
         }
 
-        private void ConnectionViewLoaded(object sender, RoutedEventArgs e)
+        private void ConnectionView_OnPointerEntered(object sender, PointerRoutedEventArgs e)
         {
-            _focusTimer.Interval = TimeSpan.FromMilliseconds(100);
-            _focusTimer.Tick += (s, o) => InputBox.Focus(FocusState.Programmatic);
-            _focusTimer.Start();
+            _autoRefocus = e.Pointer.PointerDeviceType != PointerDeviceType.Touch;
+        }
+
+        private void ViewLoaded(object sender, RoutedEventArgs e)
+        {
+            FocusInput();
+        }
+
+        private void ButtonClicked(object sender, RoutedEventArgs e)
+        {
+            FocusInput();
+        }
+
+        private void DropDownClosed(object sender, object e)
+        {
+            FocusInput();
+        }
+
+        private void FocusInput()
+        {
+            if (_autoRefocus)
+                InputBox.Focus(FocusState.Programmatic);
         }
 
         private void MessageBoxKeyDown(object sender, KeyRoutedEventArgs e)
@@ -56,6 +74,7 @@ namespace UnIRC.Views
                     break;
                 case VirtualKey.Up:
                     vm.PrevHistoryMessageCommand.Execute(null);
+                    InputBox.Select(InputBox.Text.Length, 0);
                     break;
             }
         }
@@ -73,6 +92,7 @@ namespace UnIRC.Views
                     break;
                 case VirtualKey.Down:
                     vm.NextHistoryMessageCommand.Execute(null);
+                    InputBox.Select(InputBox.Text.Length, 0);
                     break;
             }
         }
@@ -111,7 +131,6 @@ namespace UnIRC.Views
                 _earlyExtentHeight = extentHeight;
                 _lastVerticalOffset = verticalOffset;
                 _lastViewportHeight = viewportHeight;
-                _lastScrollViewerHeight = scrollViewerHeight;
 
             }
         }

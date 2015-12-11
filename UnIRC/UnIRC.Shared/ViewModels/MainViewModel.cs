@@ -100,6 +100,7 @@ namespace UnIRC.ViewModels
         {
             _navigationService = navigationService;
 
+            
             this.OnChanged(x => x.SelectedConnection).Do(
                 () =>
                 {
