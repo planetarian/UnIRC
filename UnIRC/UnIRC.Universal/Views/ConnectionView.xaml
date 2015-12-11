@@ -11,7 +11,7 @@
     xmlns:ircEvents="using:UnIRC.IrcEvents"
     d:DataContext="{d:DesignInstance viewModels:ConnectionViewModel}"
     Loaded="ViewLoaded"
-    PointerEntered="ConnectionView_OnPointerEntered">
+    PointerEntered="ViewPointerEntered">
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
