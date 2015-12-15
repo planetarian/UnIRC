@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 #if WINDOWS_UWP
 using Windows.ApplicationModel;
+using Windows.ApplicationModel.Background;
 using Windows.UI.Xaml;
 #endif
 using UnIRC.IrcEvents;
@@ -268,7 +269,7 @@ namespace UnIRC.ViewModels
         public ICommand NextHistoryMessageCommand { get; set; }
         public ICommand CancelReconnectCommand { get; set; }
         public ICommand SuspendCommand { get; set; }
-
+        
         #endregion ViewModel properties
 
 
@@ -296,6 +297,12 @@ namespace UnIRC.ViewModels
         private const int _nickReclaimRetrySeconds = 10;
         private DateTime _nextNickReclaimDate;
 
+#if WINDOWS_UWP
+        private IBackgroundTaskRegistration _task;
+        private string _taskName => @"UnIRC_ConnectionTask_" + _connectionId;
+#endif
+
+        public ConnectionViewModel() { }
 
         public ConnectionViewModel(Network network, Server server, UserInfo userInfo,
             IConnectionEndpoint endpoint)
@@ -369,9 +376,12 @@ namespace UnIRC.ViewModels
 
             // Set the starting nick, it will be changed if there's a clash anyway
             Nick = DefaultNick;
+            
 
+            // Connect
             Endpoint.CreateConnection(ConnectionId);
             
+            // Event loop
             // ReSharper disable once UnusedVariable
             Task processTask = ProcessEventsAsync();
             IsReconnecting = true;
@@ -603,7 +613,7 @@ namespace UnIRC.ViewModels
             await HandleErrorEvent(new IrcErrorEvent(message) {EventType = IrcEventType.Internal});
         }
 
-        public async Task SendMessageAsync()
+        private async Task SendMessageAsync()
         {
             string inputMessage = InputMessage;
             if (!inputMessage.StartsWith("/"))

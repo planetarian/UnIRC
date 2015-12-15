@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -63,7 +64,15 @@ namespace UnIRC.Shared.Models
             }
 
             var targetHostname = new HostName(hostname);
+
+
+            SocketActivityInformation socketInformation;
+            foreach (KeyValuePair<string, SocketActivityInformation> socket in SocketActivityInformation.AllSockets)
+            {
+                
+            }
             Socket = new StreamSocket();
+            //Socket.EnableTransferOwnership();
 
             try
             {

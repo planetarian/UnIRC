@@ -81,14 +81,8 @@
                         ItemsSource="{Binding Users, UpdateSourceTrigger=PropertyChanged}"
                         ItemContainerStyle="{StaticResource EventContainerStyle}"
                         DisplayMemberPath="Nick" Grid.Column="2"
-                        GotFocus="ButtonClicked">
-                        <interactivity:Interaction.Behaviors>
-                            <core:DataTriggerBehavior Binding="{Binding IsJoined}" Value="False">
-                                <core:ChangePropertyAction TargetObject="{Binding ElementName=UsersPanelList}"
-                                                        PropertyName="IsEnabled" Value="False"/>
-                            </core:DataTriggerBehavior>
-                        </interactivity:Interaction.Behaviors>
-                    </ListBox>
+                        GotFocus="ButtonClicked"
+                        IsEnabled="{Binding IsJoined}"/>
                 </Grid>
             </PivotItem>
             <PivotItem Header="users" x:Name="UsersHeader" Margin="10,0,10,10">
@@ -97,14 +91,8 @@
                     ItemsSource="{Binding Users, UpdateSourceTrigger=PropertyChanged}"
                     ItemContainerStyle="{StaticResource EventContainerStyle}"
                     DisplayMemberPath="Nick"
-                    GotFocus="ButtonClicked">
-                    <interactivity:Interaction.Behaviors>
-                        <core:DataTriggerBehavior Binding="{Binding IsJoined}" Value="False">
-                            <core:ChangePropertyAction TargetObject="{Binding ElementName=UsersPivotList}"
-                                                        PropertyName="IsEnabled" Value="False"/>
-                        </core:DataTriggerBehavior>
-                    </interactivity:Interaction.Behaviors>
-                </ListBox>
+                    GotFocus="ButtonClicked"
+                    IsEnabled="{Binding IsJoined}"/>
             </PivotItem>
 
         </Pivot>

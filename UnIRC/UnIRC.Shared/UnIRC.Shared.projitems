@@ -50,6 +50,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)IrcEvents\IrcYourHostEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Messages\ConnectMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Messages\NetworksModifiedMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\ConnectionModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\DirectServerConnection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\DirectServerConnectionEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\IConnectionEndpoint.cs" />
